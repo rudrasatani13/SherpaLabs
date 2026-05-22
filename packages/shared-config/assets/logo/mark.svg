@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sherpa Labs mark">
+  <title>Sherpa Labs</title>
+  <rect width="64" height="64" rx="14" fill="#4F46E5"/>
+  <path d="M20 22 H38 a6 6 0 0 1 0 12 H26 a6 6 0 0 0 0 12 H44"
+        fill="none"
+        stroke="#FAFAFA"
+        stroke-width="6"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

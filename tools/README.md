@@ -1,5 +1,16 @@
 # tools
 
-Build scripts, release helpers, and other monorepo-wide automation will live here in later phases.
+Monorepo-wide automation that isn't a shippable package. Each
+subdirectory is a workspace package (`tools/*` is wired into
+`pnpm-workspace.yaml`) so it can declare its own dependencies and be
+invoked with `pnpm --filter <name> <script>`.
 
-This directory is intentionally empty in the Phase 2 scaffold.
+| Package | Purpose | Entry |
+| ------- | ------- | ----- |
+| [`asset-build`](./asset-build) | Rasterises the brand SVG masters in `packages/shared-config/assets/` into the favicon set and default OG PNG. | `pnpm -F @sherpa-labs/asset-build build` |
+
+To regenerate brand assets from anywhere in the repo:
+
+```sh
+pnpm assets   # alias for the line above, defined at the repo root
+```

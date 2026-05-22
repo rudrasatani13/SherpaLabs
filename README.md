@@ -48,8 +48,9 @@ pnpm typecheck     # tsc --build --dry across all project references
 | `pnpm build` | Run `tsc --build` across all referenced TypeScript projects |
 | `pnpm build:clean` | Remove all `tsc --build` outputs and incremental cache |
 | `pnpm typecheck` | Dry-run the project graph — fails on missing references or stale builds |
+| `pnpm assets` | Rasterise brand SVG masters into the favicon + OG PNG set (see [`docs/BRAND.md`](./docs/BRAND.md)) |
 
-Per-package scripts live inside each `apps/*` or `packages/*` directory; invoke them with `pnpm --filter <package-name> <script>`.
+Per-package scripts live inside each `apps/*`, `packages/*`, or `tools/*` directory; invoke them with `pnpm --filter <package-name> <script>`.
 
 ## Tech stack
 
@@ -66,6 +67,10 @@ The platform-wide tech stack is documented in `SHERPA_LABS_MASTER_PLAN.md`. The 
 - `packages/*` are MIT-licensed — see each package's `LICENSE` file.
 - `apps/*` are proprietary (all rights reserved) — see each app's `LICENSE` file.
 - The repo-root `LICENSE` is MIT and applies to build configuration, docs, and tooling not otherwise marked.
+
+## Brand
+
+The Sherpa Labs name, palette, typography, and asset rules live in [`docs/BRAND.md`](./docs/BRAND.md). External account setup (npm scope, GitHub org, domain, email routing, Paddle KYC) is tracked in [`docs/PHASE4_EXTERNAL_SETUP.md`](./docs/PHASE4_EXTERNAL_SETUP.md).
 
 ## Contributing
 
