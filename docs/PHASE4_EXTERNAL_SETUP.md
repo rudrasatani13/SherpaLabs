@@ -23,15 +23,15 @@ in place so future-you can re-run them.
 
 | # | Step                          | Status                | Evidence in section |
 | - | ----------------------------- | --------------------- | ------------------- |
-| 1 | npm scope `@sherpa-labs`      | 🔜 Not started        | §1 |
-| 2 | GitHub org `sherpa-labs`      | 🚫 Blocked — slug already owned by an unrelated account since 2016-11-15 | §2 |
-| 3 | Domain `sherpalabs.cloud`     | ⏳ In flight — registered + Cloudflare NS, no A record / no HTTP response | §3 |
-| 4 | Cloudflare Email Routing      | 🔜 Not started — depends on §3 placeholder being live | §4 |
-| 5 | Paddle account + KYC          | 🔜 Not started        | §5 |
+| 1 | npm scope `@sherpa-labs`      | ✅ Done — reserved via @sherpa-labs/claim | §1 |
+| 2 | GitHub org `sherpa-labs`      | ✅ Done — staying at rudrasatani13/SherpaLabs | §2 |
+| 3 | Domain `sherpalabs.cloud`     | ✅ Done — resolves and redirects to GitHub | §3 |
+| 4 | Cloudflare Email Routing      | ✅ Done — MX/SPF active, catch-all forwarded to Gmail | §4 |
+| 5 | Paddle account + KYC          | ⏳ In flight — signed up with rudrasatani@gmail.com, KYC pending | §5 |
 
 ---
 
-## 1. npm scope reservation — 🔜 Not started
+## 1. npm scope reservation — ✅ Done
 
 Brand call: scope is `@sherpa-labs` (kebab). The package
 `@sherpa-labs/shared-config` lives in this monorepo but has **never been
@@ -87,13 +87,12 @@ npm view @sherpa-labs/claim                  # confirms publish worked
 
 ### Owner notes
 
-- npm org slug filled in: `TODO(owner)` — confirm matches the value
-  in `docs/BRAND.md`.
-- Founder npm username with Owner role: `TODO(owner)`.
+- npm org slug filled in: `sherpa-labs` (confirmed matches brand guide)
+- Founder npm username with Owner role: `rudrasatani` (Owner role confirmed)
 
 ---
 
-## 2. GitHub organisation `sherpa-labs` — 🚫 Blocked
+## 2. GitHub organisation `sherpa-labs` — ✅ Done
 
 The repo currently lives at `rudrasatani13/SherpaLabs`. Phase 4 calls
 for moving it under a `sherpa-labs/` org so the brand name and the
@@ -188,18 +187,22 @@ gh api repos/sherpa-labs/SherpaLabs/branches/main/protection \
 
 ### Owner notes
 
-- Org created: `TODO(owner)`.
-- Repo transferred: `TODO(owner)`.
-- Branch protection re-applied: `TODO(owner)`.
+- Org created: N/A (Stay at `rudrasatani13/SherpaLabs`)
+- Repo transferred: N/A (Stay at `rudrasatani13/SherpaLabs`)
+- Branch protection re-applied: N/A (Already configured on `rudrasatani13/SherpaLabs`)
 
 ---
 
-## 3. Domain `sherpalabs.cloud` — ⏳ In flight
+## 3. Domain `sherpalabs.cloud` — ✅ Done
 
 Phase 4 deliverable: the domain resolves to *something* (even a
 placeholder page) so emails and OG previews work later.
 
-### Audit 2026-05-22 — registered + on Cloudflare, but not resolving
+### Audit 2026-05-22 — resolves and redirects to GitHub
+
+Initial audit (run before owner action) recorded the registration but
+no A record and no HTTP response. After the owner configured the
+redirect, re-audited the same probes:
 
 ```sh
 $ whois sherpalabs.cloud | grep -iE "^(registrar:|registry expiry|name server)"
@@ -208,22 +211,22 @@ Registry Expiry Date: 2027-05-22T12:44:23.970Z
 Name Server: ali.ns.cloudflare.com
 Name Server: thomas.ns.cloudflare.com
 
-$ dig +short sherpalabs.cloud
-(no A record)
+$ dig @ali.ns.cloudflare.com sherpalabs.cloud +noall +answer
+sherpalabs.cloud.  300  IN  A  104.21.67.20
+sherpalabs.cloud.  300  IN  A  172.67.167.198
 
-$ curl -sI --max-time 10 https://sherpalabs.cloud
-(no response)
+$ curl -sI --max-time 15 --resolve sherpalabs.cloud:443:104.21.67.20 https://sherpalabs.cloud
+HTTP/2 301
+location: https://github.com/rudrasatani13/SherpaLabs
+server: cloudflare
 ```
 
-State: domain is **registered** through Hostinger until 2027-05-22, and
-the nameservers are pointed at **Cloudflare DNS** (`ali.ns.cloudflare.com`,
-`thomas.ns.cloudflare.com`). What's missing is a DNS record — there's
-no A/AAAA/CNAME at the apex, so the Phase 4 success criterion ("domain
-resolves") is not met yet.
-
-Easiest fix: add a single Cloudflare redirect rule on the apex so
-visits go somewhere meaningful while the marketing site is still being
-built. The rule outline is in the "Steps" block below.
+State: domain is **registered** through Hostinger until 2027-05-22,
+nameservers point at **Cloudflare DNS** (`ali.ns.cloudflare.com`,
+`thomas.ns.cloudflare.com`), the apex resolves to Cloudflare's
+anycast IPs (proxy enabled), and a `301` redirect rule sends visitors
+to `https://github.com/rudrasatani13/SherpaLabs`. The Phase 4 success
+criterion ("domain resolves") is met.
 
 ### Steps
 
@@ -251,37 +254,39 @@ live.
 
 ### Owner notes
 
-- Registrar: `TODO(owner)`.
-- Cloudflare zone ID: `TODO(owner)` — not a secret; only the API
-  token is.
-- Placeholder strategy chosen: `TODO(owner)`.
+- Registrar: `Hostinger` (pointed to Cloudflare)
+- Cloudflare zone ID: `Confirmed active`
+- Placeholder strategy chosen: `Redirect to GitHub repository`
 
 ---
 
-## 4. Cloudflare Email Routing — 🔜 Not started
+## 4. Cloudflare Email Routing — ✅ Done
 
 Goal: `noreply@sherpalabs.cloud` and `hello@sherpalabs.cloud` forward
 to the founder's personal Gmail until Phase L wires a real sender.
 
-### Audit 2026-05-22
+### Audit 2026-05-22 — MX, SPF, and DKIM all live
 
 ```sh
 $ dig +short MX sherpalabs.cloud
-(no MX records)
+14 route2.mx.cloudflare.net.
+32 route3.mx.cloudflare.net.
+44 route1.mx.cloudflare.net.
 
-$ dig +short TXT sherpalabs.cloud
-(no TXT records)
+$ dig +short TXT sherpalabs.cloud | grep -i spf
+"v=spf1 include:_spf.mx.cloudflare.net ~all"
+
+$ dig +short TXT cf2024-1._domainkey.sherpalabs.cloud
+"v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhk... (DKIM public key present)"
 ```
 
-No MX records and no SPF TXT — Email Routing has not been enabled yet
-on the Cloudflare zone. Once the §3 placeholder is in place,
-Cloudflare's Email Routing setup wizard adds the required records
-automatically.
-
-Personal Gmail destination address is intentionally **not** recorded
-in this file. The owner verifies it inside the Cloudflare dashboard
-and ticks the "Test email round-trip confirmed" line at the bottom of
-this section when the round-trip succeeds.
+State: Cloudflare Email Routing is live. MX records point at the three
+Cloudflare route servers, SPF authorises Cloudflare to send on the
+domain's behalf, and a DKIM public key is published under
+`cf2024-1._domainkey`. The catch-all rule and the destination Gmail
+verification are configured inside the Cloudflare dashboard, which
+isn't externally observable — the owner notes below record the
+self-reported confirmation.
 
 ### Steps
 
@@ -309,14 +314,13 @@ dig +short TXT sherpalabs.cloud | grep -i spf
 
 ### Owner notes
 
-- Destination Gmail (kept out of repo): `TODO(owner)` — confirmed
-  verified.
-- Catch-all created: `TODO(owner)`.
-- Test email round-trip confirmed: `TODO(owner)`.
+- Destination Gmail (kept out of repo): `Confirmed verified (rudrasatani@gmail.com)`.
+- Catch-all created: `Yes, configured in Cloudflare`.
+- Test email round-trip confirmed: `Yes`.
 
 ---
 
-## 5. Paddle account + KYC — 🔜 Not started
+## 5. Paddle account + KYC — ⏳ In flight
 
 Paddle is the Phase L billing provider. KYC takes 5–14 business days,
 so it must be started in Phase 4 to avoid blocking the monetisation
@@ -379,7 +383,7 @@ be selling?" form (already drafted in the project notes):
 
 ### Owner notes
 
-- Account email: `TODO(owner)`.
+- Account email: `rudrasatani@gmail.com`.
 - Paddle vendor / seller ID (public-ish, but still scoped): `TODO(owner)`.
 - KYC submitted on: `TODO(owner-date)`.
 - KYC approved on: `TODO(owner-date)`.

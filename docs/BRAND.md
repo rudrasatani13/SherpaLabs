@@ -15,11 +15,11 @@ change.
 | Wordmark | `sherpa labs` (lowercase) |
 | Tagline | **Better rules. Smarter agents.** |
 | Primary domain | `sherpalabs.cloud` |
-| npm scope | `@sherpa-labs/` (not yet reserved on the npm registry — see `PHASE4_EXTERNAL_SETUP.md` §1) |
-| GitHub org slug | **TBD** — `sherpa-labs` is held by an unrelated account since 2016. Decision pending in `PHASE4_EXTERNAL_SETUP.md` §2. Until the decision lands, use the current repo path. |
+| npm scope | `@sherpa-labs/` (Reserved on npm registry) |
+| GitHub org slug | **N/A** (Staying at `rudrasatani13/SherpaLabs`) |
 | GitHub repo (current) | `rudrasatani13/SherpaLabs` |
-| Primary email | `hello@sherpalabs.cloud` (TODO(owner) — set up via Cloudflare Email Routing) |
-| Transactional sender | `noreply@sherpalabs.cloud` (TODO(owner) — set up via Cloudflare Email Routing) |
+| Primary email | `hello@sherpalabs.cloud` (Cloudflare Email Routing active) |
+| Transactional sender | `noreply@sherpalabs.cloud` (Cloudflare Email Routing active) |
 
 The display name capitalises both words; the wordmark in the logo is
 intentionally lowercase to match the developer-tooling minimal
