@@ -63,6 +63,10 @@ The platform-wide tech stack is documented in `SHERPA_LABS_MASTER_PLAN.md`. The 
 
 ## Licenses
 
-- `packages/*` are MIT-licensed.
-- `apps/*` are closed-source (`UNLICENSED`).
-- The repo-root `LICENSE` file applies to assets not otherwise marked.
+- `packages/*` are MIT-licensed — see each package's `LICENSE` file.
+- `apps/*` are proprietary (all rights reserved) — see each app's `LICENSE` file.
+- The repo-root `LICENSE` is MIT and applies to build configuration, docs, and tooling not otherwise marked.
+
+## Contributing
+
+Branching strategy, commit conventions, PR workflow, and the Changesets release flow live in [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md). When you are ready to take the repo public, follow the steps in [`docs/GITHUB_SETUP.md`](./docs/GITHUB_SETUP.md).

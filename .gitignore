@@ -8,6 +8,29 @@ build/
 out/
 *.tsbuildinfo
 
+# Next.js
+.next/
+next-env.d.ts
+
+# Cloudflare Workers / Wrangler
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+wrangler.toml.bak
+
+# Test & coverage
+coverage/
+.nyc_output/
+
+# Caches
+.turbo/
+.eslintcache
+.cache/
+
+# Changesets — release artefacts only; .changeset/*.md changesets ARE checked in
+.changeset/.cache/
+
 # Logs
 *.log
 npm-debug.log*
