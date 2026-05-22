@@ -5,12 +5,30 @@
   "description": "Shared TypeScript, ESLint, and Prettier presets for the Sherpa Labs monorepo.",
   "license": "MIT",
   "type": "module",
+  "main": "./eslint.config.js",
   "exports": {
     "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tsconfig.node.json": "./tsconfig.node.json",
+    "./tsconfig.edge.json": "./tsconfig.edge.json",
+    "./tsconfig.nextjs.json": "./tsconfig.nextjs.json",
+    "./eslint": "./eslint.config.js",
     "./prettier": "./prettier.config.js"
   },
   "files": [
     "tsconfig.base.json",
+    "tsconfig.node.json",
+    "tsconfig.edge.json",
+    "tsconfig.nextjs.json",
+    "eslint.config.js",
     "prettier.config.js"
-  ]
+  ],
+  "peerDependencies": {
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.20.0"
+  }
 }
