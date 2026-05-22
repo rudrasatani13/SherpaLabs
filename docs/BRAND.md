@@ -15,9 +15,9 @@ change.
 | Wordmark | `sherpa labs` (lowercase) |
 | Tagline | **Better rules. Smarter agents.** |
 | Primary domain | `sherpalabs.cloud` |
-| npm scope | `@sherpa-labs/` |
-| GitHub org slug | `sherpa-labs` |
-| GitHub repo (current) | `rudrasatani13/SherpaLabs` (moves under `sherpa-labs/` org once that exists — see `PHASE4_EXTERNAL_SETUP.md`) |
+| npm scope | `@sherpa-labs/` (not yet reserved on the npm registry — see `PHASE4_EXTERNAL_SETUP.md` §1) |
+| GitHub org slug | **TBD** — `sherpa-labs` is held by an unrelated account since 2016. Decision pending in `PHASE4_EXTERNAL_SETUP.md` §2. Until the decision lands, use the current repo path. |
+| GitHub repo (current) | `rudrasatani13/SherpaLabs` |
 | Primary email | `hello@sherpalabs.cloud` (TODO(owner) — set up via Cloudflare Email Routing) |
 | Transactional sender | `noreply@sherpalabs.cloud` (TODO(owner) — set up via Cloudflare Email Routing) |
 

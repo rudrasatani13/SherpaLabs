@@ -10,6 +10,8 @@ Conventions:
 - **⏳ In flight** — submitted, waiting on a third party (DNS prop,
   KYC review, etc.).
 - **✅ Done** — confirmed working end-to-end.
+- **🚫 Blocked** — needs an explicit owner decision before progress can
+  continue. The block is documented in the section.
 - `TODO(owner)` — a value the owner has to fill in once the step is
   done. Don't paste secrets here; just confirm "filled in" or paste
   the public identifier (account ID, domain registrar reference).
@@ -17,15 +19,37 @@ Conventions:
 When a section flips to **✅ Done**, leave the verification commands
 in place so future-you can re-run them.
 
+## Status at a glance (audit 2026-05-22)
+
+| # | Step                          | Status                | Evidence in section |
+| - | ----------------------------- | --------------------- | ------------------- |
+| 1 | npm scope `@sherpa-labs`      | 🔜 Not started        | §1 |
+| 2 | GitHub org `sherpa-labs`      | 🚫 Blocked — slug already owned by an unrelated account since 2016-11-15 | §2 |
+| 3 | Domain `sherpalabs.cloud`     | ⏳ In flight — registered + Cloudflare NS, no A record / no HTTP response | §3 |
+| 4 | Cloudflare Email Routing      | 🔜 Not started — depends on §3 placeholder being live | §4 |
+| 5 | Paddle account + KYC          | 🔜 Not started        | §5 |
+
 ---
 
 ## 1. npm scope reservation — 🔜 Not started
 
-Brand call: scope is `@sherpa-labs` (kebab). Existing package
-`@sherpa-labs/shared-config` already publishes under this scope, but
-the scope itself has not been **claimed on the npm registry** under an
-organisation account. Until it is, anyone could publish
-`@sherpa-labs/anything` first.
+Brand call: scope is `@sherpa-labs` (kebab). The package
+`@sherpa-labs/shared-config` lives in this monorepo but has **never been
+published**, so the scope itself has not been **claimed on the npm
+registry** under an organisation account. Until it is, anyone could
+publish `@sherpa-labs/anything` first.
+
+### Audit 2026-05-22
+
+```sh
+$ npm view @sherpa-labs/shared-config
+npm error 404 Not Found - GET https://registry.npmjs.org/@sherpa-labs%2fshared-config - Not found
+$ npm view @sherpa-labs/claim
+npm error 404 Not Found - GET https://registry.npmjs.org/@sherpa-labs%2fclaim - Not found
+```
+
+Both 404s confirm the scope is currently unowned on the public registry
+— still claimable, still vulnerable to a squatter.
 
 ### Steps
 
@@ -69,13 +93,65 @@ npm view @sherpa-labs/claim                  # confirms publish worked
 
 ---
 
-## 2. GitHub organisation `sherpa-labs` — 🔜 Not started
+## 2. GitHub organisation `sherpa-labs` — 🚫 Blocked
 
 The repo currently lives at `rudrasatani13/SherpaLabs`. Phase 4 calls
 for moving it under a `sherpa-labs/` org so the brand name and the
 GitHub URL line up.
 
-### Steps
+### Audit 2026-05-22 — slug is already owned
+
+```sh
+$ gh api orgs/sherpa-labs --jq '{login, id, created_at, public_repos, html_url}'
+{
+  "login": "sherpa-labs",
+  "id": 23465873,
+  "created_at": "2016-11-15T00:58:35Z",
+  "public_repos": 0,
+  "html_url": "https://github.com/sherpa-labs"
+}
+```
+
+The `sherpa-labs` GitHub login was registered by an unrelated account
+on **2016-11-15** — nearly a decade before this project. It has zero
+public repos but the slug is held, and GitHub does not release inactive
+org names absent a trademark claim.
+
+### Resolution options (owner decision required)
+
+Pick one before any code in this monorepo gets renamed:
+
+1. **Use a different GitHub org slug** while keeping the public
+   product name "Sherpa Labs". Candidates that match the
+   `sherpalabs.cloud` domain and are worth checking against
+   `gh api orgs/<slug>`:
+   - `sherpalabs` (single word, matches domain)
+   - `sherpalabs-dev`
+   - `sherpalabs-cloud`
+   - `sherpa-cloud`
+   - `sherpa-rules`
+2. **Stay at `rudrasatani13/SherpaLabs`** until a trademark or
+   commercial reason justifies negotiating the slug. The README,
+   branch protection, and CI already work at this path.
+3. **Contact the current owner of `sherpa-labs`** to request a
+   transfer. Long shot, low expected return — only worth it if there is
+   a real trademark hook.
+
+### Consequences
+
+- **`docs/BRAND.md`** lists the GitHub org slug as `sherpa-labs`. That
+  row must be updated in the same change as the decision, otherwise
+  the brand guide will diverge from reality.
+- **npm scope `@sherpa-labs`** (see §1) is *not* affected by this
+  blocker — npm and GitHub namespaces are independent. The scope can
+  still be reserved as `@sherpa-labs` even if the GitHub org settles
+  on a different slug. Worth doing so the package names in this repo
+  don't need to change.
+- **Repo transfer + branch-protection re-application steps below
+  remain valid** once a slug is chosen — they apply to whichever org
+  ends up owning the repo.
+
+### Steps (after a slug is chosen)
 
 1. Visit https://github.com/organizations/new.
 2. Choose the **Free** plan.
@@ -118,10 +194,36 @@ gh api repos/sherpa-labs/SherpaLabs/branches/main/protection \
 
 ---
 
-## 3. Domain `sherpalabs.cloud` — 🔜 Not started
+## 3. Domain `sherpalabs.cloud` — ⏳ In flight
 
 Phase 4 deliverable: the domain resolves to *something* (even a
 placeholder page) so emails and OG previews work later.
+
+### Audit 2026-05-22 — registered + on Cloudflare, but not resolving
+
+```sh
+$ whois sherpalabs.cloud | grep -iE "^(registrar:|registry expiry|name server)"
+Registrar: HOSTINGER operations, UAB
+Registry Expiry Date: 2027-05-22T12:44:23.970Z
+Name Server: ali.ns.cloudflare.com
+Name Server: thomas.ns.cloudflare.com
+
+$ dig +short sherpalabs.cloud
+(no A record)
+
+$ curl -sI --max-time 10 https://sherpalabs.cloud
+(no response)
+```
+
+State: domain is **registered** through Hostinger until 2027-05-22, and
+the nameservers are pointed at **Cloudflare DNS** (`ali.ns.cloudflare.com`,
+`thomas.ns.cloudflare.com`). What's missing is a DNS record — there's
+no A/AAAA/CNAME at the apex, so the Phase 4 success criterion ("domain
+resolves") is not met yet.
+
+Easiest fix: add a single Cloudflare redirect rule on the apex so
+visits go somewhere meaningful while the marketing site is still being
+built. The rule outline is in the "Steps" block below.
 
 ### Steps
 
@@ -161,6 +263,26 @@ live.
 Goal: `noreply@sherpalabs.cloud` and `hello@sherpalabs.cloud` forward
 to the founder's personal Gmail until Phase L wires a real sender.
 
+### Audit 2026-05-22
+
+```sh
+$ dig +short MX sherpalabs.cloud
+(no MX records)
+
+$ dig +short TXT sherpalabs.cloud
+(no TXT records)
+```
+
+No MX records and no SPF TXT — Email Routing has not been enabled yet
+on the Cloudflare zone. Once the §3 placeholder is in place,
+Cloudflare's Email Routing setup wizard adds the required records
+automatically.
+
+Personal Gmail destination address is intentionally **not** recorded
+in this file. The owner verifies it inside the Cloudflare dashboard
+and ticks the "Test email round-trip confirmed" line at the bottom of
+this section when the round-trip succeeds.
+
 ### Steps
 
 1. In the Cloudflare dashboard, open the `sherpalabs.cloud` zone →
@@ -199,6 +321,31 @@ dig +short TXT sherpalabs.cloud | grep -i spf
 Paddle is the Phase L billing provider. KYC takes 5–14 business days,
 so it must be started in Phase 4 to avoid blocking the monetisation
 phase later.
+
+### Audit 2026-05-22
+
+Paddle does not expose a public API for non-vendors to check seller
+status, so this step cannot be verified from the repo side. State is
+self-reported below.
+
+- KYC submitted on: `TODO(owner-date)` — leave as the placeholder
+  until the docs have been uploaded.
+- Confirmation email received from `support@paddle.com`:
+  `TODO(owner)`.
+- Sandbox dashboard reachable at https://sandbox-vendors.paddle.com:
+  `TODO(owner)`.
+
+Suggested product description to paste into Paddle's "What will you
+be selling?" form (already drafted in the project notes):
+
+> Sherpa Labs sells Sherpa — a B2B SaaS developer tool that helps
+> software engineering teams keep their AI coding-assistant rules
+> (Cursor, Claude Code, Windsurf, etc.) consistent and auditable
+> across their code repositories. Delivered as a web dashboard at
+> sherpalabs.cloud plus two companion CLIs (`aimcp-lint` and
+> `sherpa`) distributed via npm. Recurring monthly/annual SaaS
+> subscriptions. No physical goods, no financial products, no
+> gambling, no adult content, no marketplace, no cryptocurrency.
 
 ### Steps
 
