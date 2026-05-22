@@ -27,7 +27,7 @@ in place so future-you can re-run them.
 | 2 | GitHub org `sherpa-labs`      | ✅ Done — staying at rudrasatani13/SherpaLabs | §2 |
 | 3 | Domain `sherpalabs.cloud`     | ✅ Done — resolves and redirects to GitHub | §3 |
 | 4 | Cloudflare Email Routing      | ✅ Done — MX/SPF active, catch-all forwarded to Gmail | §4 |
-| 5 | Paddle account + KYC          | ⏳ In flight — signed up with rudrasatani@gmail.com, KYC pending | §5 |
+| 5 | Paddle account + KYC          | 🚫 **Blocked** — signed up + welcome email + sandbox dashboard accessible, **KYC documents not yet uploaded** | §5 |
 
 ---
 
@@ -320,7 +320,7 @@ dig +short TXT sherpalabs.cloud | grep -i spf
 
 ---
 
-## 5. Paddle account + KYC — ⏳ In flight
+## 5. Paddle account + KYC — 🚫 Blocked
 
 Paddle is the Phase L billing provider. KYC takes 5–14 business days,
 so it must be started in Phase 4 to avoid blocking the monetisation
@@ -332,12 +332,61 @@ Paddle does not expose a public API for non-vendors to check seller
 status, so this step cannot be verified from the repo side. State is
 self-reported below.
 
-- KYC submitted on: `TODO(owner-date)` — leave as the placeholder
-  until the docs have been uploaded.
-- Confirmation email received from `support@paddle.com`:
-  `TODO(owner)`.
-- Sandbox dashboard reachable at https://sandbox-vendors.paddle.com:
-  `TODO(owner)`.
+| Check | State |
+| ----- | ----- |
+| Vendor account created at vendors.paddle.com | ✅ Yes |
+| Welcome / confirmation email received | ✅ Yes |
+| Sandbox dashboard reachable at https://sandbox-vendors.paddle.com | ✅ Yes |
+| KYC documents uploaded | ❌ **No — outstanding owner action** |
+| KYC approved (account moved to live mode) | ❌ Pending KYC submission |
+
+Signup-side fields recorded (no secrets, no IDs, no email body
+captured):
+
+- Vendor account email: kept out of the repo. Same address used
+  elsewhere for project ops.
+- Vendor / seller ID: not recorded here. If pasted later, only the
+  public numeric ID — never an API key.
+- KYC submitted on: **not yet** — see "Remaining owner action" below.
+
+### Remaining owner action — this is why Phase 4 is not closed
+
+To unblock §5 and complete Phase 4, log in to the live vendor
+dashboard and upload the standard Indian-vendor KYC bundle. Paddle's
+request list typically combines:
+
+- Government photo ID (passport / Aadhaar / driving licence) — front
+  and back where applicable.
+- Proof of address dated within the last 3 months (utility bill,
+  bank statement, or rental agreement).
+- Business registration certificate if operating as a private limited
+  / LLP. Skip if registering as a sole proprietor.
+- Bank account proof for payouts: a cancelled cheque or a recent
+  account statement matching the legal-entity name.
+- Default currency `USD`, payout currency / bank `INR` — Paddle will
+  FX from USD at payout time.
+- Approved checkout domain: enter `sherpalabs.cloud` (the §3 redirect
+  is sufficient to verify ownership).
+
+Paddle's KYC team reviews within 5–14 business days. When approval
+lands, do all of these in one follow-up commit:
+
+1. Flip the §5 header from `🚫 Blocked` to `⏳ In flight` on the
+   submission day, then to `✅ Done` when the approval email arrives.
+2. Update the status-at-a-glance table at the top of this file.
+3. Fill in "KYC submitted on" with the actual submission date.
+4. Cross out `❌` in the audit table for `KYC documents uploaded` and
+   `KYC approved`.
+5. Update `SHERPA_LABS_DEVELOPMENT.md` Phase 4 success-criteria note,
+   if you keep one, to reflect closure.
+
+### Phase 4 closure note
+
+This is the only unmet Phase 4 success criterion. Items §1–§4 are all
+✅ Done and independently verified. Phase 5 (shared TypeScript /
+ESLint / Prettier configuration) **does not depend on Paddle** and can
+proceed in parallel. Phase L (Monetisation) is what actually blocks
+on KYC approval; starting it before approval is a waste of cycles.
 
 Suggested product description to paste into Paddle's "What will you
 be selling?" form (already drafted in the project notes):
@@ -383,12 +432,16 @@ be selling?" form (already drafted in the project notes):
 
 ### Owner notes
 
-- Account email: `rudrasatani@gmail.com`.
-- Paddle vendor / seller ID (public-ish, but still scoped): `TODO(owner)`.
-- KYC submitted on: `TODO(owner-date)`.
-- KYC approved on: `TODO(owner-date)`.
+- Account email: kept out of the repo by convention. Same address used
+  for project ops elsewhere.
+- Paddle vendor / seller ID: `TODO(owner)` once KYC is approved and a
+  live seller ID is issued (sandbox IDs are not the canonical one).
+- KYC submitted on: **not yet submitted as of 2026-05-22** — see
+  "Remaining owner action" in this section.
+- KYC approved on: `TODO(owner-date)` — fill in when the approval
+  email lands.
 - Sandbox API key generated and stored in a password manager (NOT in
-  this repo): `TODO(owner)`.
+  this repo): `TODO(owner)` once sandbox testing begins in Phase L.
 
 ---
 
