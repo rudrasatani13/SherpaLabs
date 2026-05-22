@@ -1,0 +1,26 @@
+node_modules
+dist
+build
+out
+.next
+.wrangler
+coverage
+*.tsbuildinfo
+.turbo
+.cache
+pnpm-lock.yaml
+.changeset
+LICENSE
+packages/shared-config/assets
+
+# Pre-existing docs predate Phase 5 formatting standards.
+# Remove these lines once each file is reformatted intentionally.
+README.md
+SHERPA_LABS_DEVELOPMENT.md
+SHERPA_LABS_MASTER_PLAN.md
+tools/README.md
+docs/BRAND.md
+docs/CONTRIBUTING.md
+docs/GITHUB_SETUP.md
+docs/PHASE4_EXTERNAL_SETUP.md
+docs/SETUP.md
