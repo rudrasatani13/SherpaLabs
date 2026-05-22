@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Sherpa Labs">
+  <title>Sherpa Labs — Better rules. Smarter agents.</title>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#FAFAFA"/>
+
+  <!-- Subtle hairline grid (zinc-200) -->
+  <g stroke="#E4E4E7" stroke-width="1">
+    <line x1="0" y1="120" x2="1200" y2="120"/>
+    <line x1="0" y1="510" x2="1200" y2="510"/>
+  </g>
+
+  <!-- Mark, top-left -->
+  <g transform="translate(96 96)">
+    <rect width="96" height="96" rx="21" fill="#4F46E5"/>
+    <g transform="translate(0 0) scale(1.5)">
+      <path d="M20 22 H38 a6 6 0 0 1 0 12 H26 a6 6 0 0 0 0 12 H44"
+            fill="none"
+            stroke="#FAFAFA"
+            stroke-width="6"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Headline -->
+  <text x="96" y="360"
+        font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="84"
+        font-weight="700"
+        letter-spacing="-0.04em"
+        fill="#18181B">Better rules.</text>
+  <text x="96" y="456"
+        font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="84"
+        font-weight="700"
+        letter-spacing="-0.04em"
+        fill="#4F46E5">Smarter agents.</text>
+
+  <!-- Wordmark, bottom-left -->
+  <text x="96" y="566"
+        font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="28"
+        font-weight="500"
+        letter-spacing="-0.02em"
+        fill="#52525B">sherpa labs</text>
+
+  <!-- URL, bottom-right -->
+  <text x="1104" y="566"
+        text-anchor="end"
+        font-family="ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace"
+        font-size="22"
+        font-weight="500"
+        fill="#52525B">sherpalabs.cloud</text>
+</svg>

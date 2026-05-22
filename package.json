@@ -11,12 +11,14 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "tools/*"
   ],
   "scripts": {
     "build": "tsc --build",
     "build:clean": "tsc --build --clean",
     "typecheck": "tsc --build --dry",
+    "assets": "pnpm -F @sherpa-labs/asset-build build",
     "changeset": "changeset",
     "changeset:status": "changeset status --verbose",
     "version-packages": "changeset version",
