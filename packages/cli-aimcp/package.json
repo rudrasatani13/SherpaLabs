@@ -1,0 +1,23 @@
+{
+  "name": "@sherpa-labs/cli-aimcp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "aimcp-lint — open-source MCP linter CLI (Phase 20+).",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "aimcp-lint": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "@sherpa-labs/shared-config": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*",
+    "@sherpa-labs/core-mcp": "workspace:*"
+  }
+}

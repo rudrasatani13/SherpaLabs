@@ -1,0 +1,23 @@
+{
+  "name": "@sherpa-labs/cli-sherpa",
+  "version": "0.0.0",
+  "private": true,
+  "description": "sherpa CLI — Sherpa Labs commercial CLI for rule audits and templates (Phase 26+).",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "sherpa": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "@sherpa-labs/shared-config": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*",
+    "@sherpa-labs/core-rules": "workspace:*"
+  }
+}

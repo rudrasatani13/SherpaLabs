@@ -1,0 +1,27 @@
+{
+  "name": "@sherpa-labs/core-rules",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Parsing and audit engine for Markdown-style agent rule files (CLAUDE.md, .cursor/rules/*, AGENTS.md, .windsurfrules).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "@sherpa-labs/shared-config": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*"
+  }
+}

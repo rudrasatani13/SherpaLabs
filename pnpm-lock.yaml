@@ -1,0 +1,98 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      typescript:
+        specifier: 5.6.3
+        version: 5.6.3
+
+  apps/api:
+    devDependencies:
+      '@sherpa-labs/core-mcp':
+        specifier: workspace:*
+        version: link:../../packages/core-mcp
+      '@sherpa-labs/core-rules':
+        specifier: workspace:*
+        version: link:../../packages/core-rules
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../../packages/shared-config
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+
+  apps/web:
+    devDependencies:
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../../packages/shared-config
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+
+  packages/cli-aimcp:
+    devDependencies:
+      '@sherpa-labs/core-mcp':
+        specifier: workspace:*
+        version: link:../core-mcp
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../shared-config
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/cli-sherpa:
+    devDependencies:
+      '@sherpa-labs/core-rules':
+        specifier: workspace:*
+        version: link:../core-rules
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../shared-config
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/core-mcp:
+    devDependencies:
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../shared-config
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/core-rules:
+    devDependencies:
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../shared-config
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/shared-config: {}
+
+  packages/shared-types:
+    devDependencies:
+      '@sherpa-labs/shared-config':
+        specifier: workspace:*
+        version: link:../shared-config
+
+packages:
+
+  typescript@5.6.3:
+    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  typescript@5.6.3: {}

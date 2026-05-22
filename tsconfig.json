@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared-types" },
+    { "path": "packages/core-rules" },
+    { "path": "packages/core-mcp" },
+    { "path": "packages/cli-aimcp" },
+    { "path": "packages/cli-sherpa" },
+    { "path": "apps/api" },
+    { "path": "apps/web" }
+  ]
+}

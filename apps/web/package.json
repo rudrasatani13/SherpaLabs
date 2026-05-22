@@ -1,0 +1,16 @@
+{
+  "name": "@sherpa-labs/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sherpa Labs dashboard — Next.js 14 (closed-source).",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "@sherpa-labs/shared-config": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@sherpa-labs/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sherpa Labs backend API — Hono on Cloudflare Workers (closed-source).",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "@sherpa-labs/shared-config": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*",
+    "@sherpa-labs/core-rules": "workspace:*",
+    "@sherpa-labs/core-mcp": "workspace:*"
+  }
+}
