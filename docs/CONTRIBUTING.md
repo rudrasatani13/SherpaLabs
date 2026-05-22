@@ -128,6 +128,19 @@ Changes that only touch `apps/api`, `apps/web`, docs, tooling, or tests do **not
 - Prefer editing existing files over creating new ones.
 - Comments explain *why* something non-obvious is the case, not *what* the code does.
 
+## Repository history note
+
+The first two commits in this repository — `ddeb04c "Initial commit"` and
+`ea62d75 "Connect local folder and add files"` — predate the adoption of
+Conventional Commits and are kept as-is to preserve the original bootstrap
+history. **Public history is not rewritten.**
+
+From the start of Phase 3 onward, every commit that lands on `main` or
+`develop` must follow the [Conventional Commits format](#commit-messages--conventional-commits)
+above. Branch protection on `main` enforces this indirectly by requiring all
+changes to go through a reviewed PR; reviewers should reject PRs whose
+squash-commit title would not parse as Conventional Commits.
+
 ## Getting help
 
 Open a draft PR early and ask questions in the description, or file an issue with the `question` label.
