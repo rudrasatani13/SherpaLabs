@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/shared-types" },
+    { "path": "packages/core-utils" },
     { "path": "packages/core-rules" },
     { "path": "packages/core-mcp" },
     { "path": "packages/cli-aimcp" },

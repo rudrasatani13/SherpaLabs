@@ -1,0 +1,61 @@
+{
+  "name": "@sherpa-labs/core-utils",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared runtime utilities for Sherpa Labs CLI and core packages.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "packages/core-utils"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/core-utils#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./file-read": {
+      "types": "./dist/file-read.d.ts",
+      "default": "./dist/file-read.js"
+    },
+    "./hash": {
+      "types": "./dist/hash.d.ts",
+      "default": "./dist/hash.js"
+    },
+    "./logger": {
+      "types": "./dist/logger.d.ts",
+      "default": "./dist/logger.js"
+    },
+    "./path": {
+      "types": "./dist/path.d.ts",
+      "default": "./dist/path.js"
+    },
+    "./retry": {
+      "types": "./dist/retry.d.ts",
+      "default": "./dist/retry.js"
+    },
+    "./token-count": {
+      "types": "./dist/token-count.d.ts",
+      "default": "./dist/token-count.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@sherpa-labs/shared-config": "workspace:*",
+    "@types/node": "^25.9.1",
+    "vitest": "^4.1.7"
+  }
+}
