@@ -1,0 +1,5 @@
+# Cursor Companion Rules
+
+- MUST preserve the TypeScript and Next.js guidance from CLAUDE.md.
+- SHOULD use pnpm commands from the repository scripts.
+- MAY suggest focused Vitest fixtures for parser and audit changes.
