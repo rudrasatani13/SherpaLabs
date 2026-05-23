@@ -37,15 +37,18 @@ git push -u origin develop
 target for feature work (see [`CONTRIBUTING.md`](./CONTRIBUTING.md)). The
 default branch will be re-evaluated when CI lands in Phase 6.
 
-## 4. Branch protection on `main` — ✅ Done (status checks pending Phase 6 merge)
+## 4. Branch protection on `main` — ✅ Done
 
-Applied with:
+Applied (and re-applied after Phase 6 to add the required `ci` status check) with:
 
 ```sh
 gh api -X PUT repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
   --input - <<'JSON'
 {
-  "required_status_checks": null,
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["ci"]
+  },
   "enforce_admins": true,
   "required_pull_request_reviews": {
     "required_approving_review_count": 1,
@@ -61,58 +64,24 @@ gh api -X PUT repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
 JSON
 ```
 
-> **Note on required status checks.** `required_status_checks` is intentionally
-> `null` until the `ci` workflow has run at least once on `main` (GitHub will
-> refuse to require a context it has never observed). Phase 6 adds the workflow.
-> Once the first CI run on `main` has completed, re-apply the same PUT with the
-> block below to require it on every PR into `main`:
->
-> ```json
-> "required_status_checks": {
->   "strict": true,
->   "contexts": ["ci"]
-> }
-> ```
->
-> Full command (run after the first `ci` workflow run lands on `main`):
->
-> ```sh
-> gh api -X PUT repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
->   --input - <<'JSON'
-> {
->   "required_status_checks": {
->     "strict": true,
->     "contexts": ["ci"]
->   },
->   "enforce_admins": true,
->   "required_pull_request_reviews": {
->     "required_approving_review_count": 1,
->     "dismiss_stale_reviews": true,
->     "require_code_owner_reviews": false
->   },
->   "restrictions": null,
->   "required_linear_history": true,
->   "allow_force_pushes": false,
->   "allow_deletions": false,
->   "required_conversation_resolution": true
-> }
-> JSON
-> ```
->
-> Verify the new required check landed:
->
-> ```sh
-> gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
->   | jq '.required_status_checks'
-> ```
+> **History note.** Until the Phase 6 `ci` workflow had run at least once on
+> `main`, GitHub would not accept `"contexts": ["ci"]` (it refuses to require a
+> context it has never observed), so the original Phase 3 PUT used
+> `"required_status_checks": null`. After PR #6 merged and the post-merge `ci`
+> run on `main` succeeded (`sha=542743f`), the same PUT was re-applied with the
+> block above. There is no separate "pending" state anymore.
 
 ### Verification — sanitised `gh api` output
 
 `gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection`, with
-`url` fields stripped:
+`url` / `contexts_url` / `checks` fields stripped:
 
 ```json
 {
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["ci"]
+  },
   "required_pull_request_reviews": {
     "dismiss_stale_reviews": true,
     "require_code_owner_reviews": false,
@@ -149,17 +118,17 @@ JSON
 }
 ```
 
-Mapping back to the Phase 3 deliverable list:
+Mapping back to the Phase 3 + Phase 6 deliverable list:
 
-| Requirement                         | Setting                                        | State |
-| ----------------------------------- | ---------------------------------------------- | ----- |
-| PR required                         | `required_pull_request_reviews` present        | ✅    |
-| ≥ 1 approving review                | `required_approving_review_count: 1`           | ✅    |
-| Dismiss stale reviews               | `dismiss_stale_reviews: true`                  | ✅    |
-| Disallow force pushes               | `allow_force_pushes.enabled: false`            | ✅    |
-| Disallow deletions                  | `allow_deletions.enabled: false`               | ✅    |
-| Enforce on admins                   | `enforce_admins.enabled: true`                 | ✅    |
-| Required CI status checks           | `required_status_checks: null`                 | 🔜 Re-apply after first `ci` run lands on `main` |
+| Requirement                         | Setting                                                  | State |
+| ----------------------------------- | -------------------------------------------------------- | ----- |
+| PR required                         | `required_pull_request_reviews` present                  | ✅    |
+| ≥ 1 approving review                | `required_approving_review_count: 1`                     | ✅    |
+| Dismiss stale reviews               | `dismiss_stale_reviews: true`                            | ✅    |
+| Disallow force pushes               | `allow_force_pushes.enabled: false`                      | ✅    |
+| Disallow deletions                  | `allow_deletions.enabled: false`                         | ✅    |
+| Enforce on admins                   | `enforce_admins.enabled: true`                           | ✅    |
+| Required CI status checks           | `required_status_checks.contexts: ["ci"]`, `strict: true`| ✅    |
 
 > **Solo-owner note.** With `enforce_admins: true` and
 > `required_approving_review_count: 1`, the repo owner cannot self-approve
@@ -212,14 +181,16 @@ Add via `Settings → Secrets and variables → Actions → New repository secre
 These cannot be committed to the repo or set by an Action — only a repo
 admin can configure them through the GitHub UI (or `gh secret set`).
 
-| Secret                  | Used by                                          | Required for                              | Phase introduced |
-| ----------------------- | ------------------------------------------------ | ----------------------------------------- | ---------------- |
-| `NPM_TOKEN`             | `.github/workflows/release.yml` (Changesets)     | Publishing public packages to npm         | 6                |
-| `CLOUDFLARE_API_TOKEN`  | Wrangler deploys for `apps/api` (later phase)    | Cloudflare Workers deployment             | reserved         |
-| `VERCEL_TOKEN`          | Vercel deploys for `apps/web` (later phase)      | Dashboard deployment                      | reserved         |
+| Secret                  | Used by                                          | Required for                              | Phase introduced | State          |
+| ----------------------- | ------------------------------------------------ | ----------------------------------------- | ---------------- | -------------- |
+| `NPM_TOKEN`             | `.github/workflows/release.yml` (Changesets)     | Publishing public packages to npm         | 6                | ✅ Set         |
+| `CLOUDFLARE_API_TOKEN`  | Wrangler deploys for `apps/api` (later phase)    | Cloudflare Workers deployment             | reserved         | 🔜 Not yet set |
+| `VERCEL_TOKEN`          | Vercel deploys for `apps/web` (later phase)      | Dashboard deployment                      | reserved         | 🔜 Not yet set |
 
-`CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN` are reserved names — add them when
-the corresponding deploy workflows land. Phase 6 only requires `NPM_TOKEN`.
+`NPM_TOKEN` is present in the repo's Actions secrets (verified via
+`gh secret list`; values cannot be read back). `CLOUDFLARE_API_TOKEN` and
+`VERCEL_TOKEN` are reserved names — add them when the corresponding deploy
+workflows land. Phase 6 only requires `NPM_TOKEN`.
 
 ### Generating `NPM_TOKEN`
 
@@ -260,9 +231,18 @@ Added in Phase 6:
   (`@sherpa-labs/api`, `@sherpa-labs/web`) are excluded by
   `.changeset/config.json`.
 
-The CI job name is `ci` — that is the context to require under
-**[section 4](#4-branch-protection-on-main----done-status-checks-pending-phase-6-merge)**
-once the first run lands on `main`.
+The CI job name is `ci` — required as a status check on `main` (see
+[section 4](#4-branch-protection-on-main----done)).
+
+### Release readiness
+
+`.github/workflows/release.yml` is wired to `changesets/action@v1` and consumes
+the `NPM_TOKEN` Actions secret (set in §7). The workflow itself was exercised
+on the first push to `main` post-merge and ran without errors — it found no
+pending changesets, so nothing was published. **End-to-end npm publishing will
+only be proven on the first real changeset release.** When that happens, the
+public packages under `packages/*` will appear on npm under the `@sherpa-labs`
+scope; `apps/api` and `apps/web` remain ignored by Changesets.
 
 ## 9. Re-verification commands
 
