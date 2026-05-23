@@ -27,6 +27,10 @@
     "./stack": {
       "types": "./dist/stack/index.d.ts",
       "default": "./dist/stack/index.js"
+    },
+    "./audit": {
+      "types": "./dist/audit/index.d.ts",
+      "default": "./dist/audit/index.js"
     }
   },
   "files": [

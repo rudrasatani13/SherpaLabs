@@ -28,7 +28,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node -e \"console.log('[sherpa-labs] No test suites are wired up yet — placeholder passes so CI stays green. Per-package test scripts will replace this in later phases.');\"",
+    "test": "pnpm -r --if-present test",
     "assets": "pnpm -F @sherpa-labs/asset-build build",
     "changeset": "changeset",
     "changeset:status": "changeset status --verbose",
