@@ -4,6 +4,13 @@
   "private": true,
   "description": "Parsing and audit engine for Markdown-style agent rule files (CLAUDE.md, .cursor/rules/*, AGENTS.md, .windsurfrules).",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "packages/core-rules"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/core-rules#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

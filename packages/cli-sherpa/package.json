@@ -4,6 +4,13 @@
   "private": true,
   "description": "sherpa CLI — Sherpa Labs commercial CLI for rule audits and templates (Phase 26+).",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "packages/cli-sherpa"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/cli-sherpa#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "bin": {
     "sherpa": "./dist/cli.js"
