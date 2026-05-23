@@ -1,6 +1,7 @@
 {
   "extends": "@sherpa-labs/shared-config/tsconfig.base.json",
   "compilerOptions": {
+    "emitDeclarationOnly": true,
     "rootDir": "./src",
     "outDir": "./dist"
   },

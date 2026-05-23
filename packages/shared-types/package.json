@@ -12,12 +12,29 @@
   "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/shared-types#readme",
   "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
-  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts"
+    },
+    "./audit": {
+      "types": "./dist/audit.d.ts"
+    },
+    "./common": {
+      "types": "./dist/common.d.ts"
+    },
+    "./domain": {
+      "types": "./dist/domain.d.ts"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts"
+    },
+    "./rule-files": {
+      "types": "./dist/rule-files.d.ts"
     }
   },
   "files": [
