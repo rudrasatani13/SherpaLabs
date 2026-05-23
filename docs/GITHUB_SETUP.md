@@ -1,6 +1,6 @@
 # GitHub setup checklist
 
-Repository: **`rudrasatani13/SherpaLabs`** (public)
+Repository: **`sherpa-labs-io/SherpaLabs`** (public)
 
 This document tracks the GitHub-side configuration that has to be applied
 against the remote — work that does not happen as part of normal local
@@ -12,10 +12,13 @@ and authenticated (`gh auth status`).
 
 ## 1. Repository creation — ✅ Done
 
-The repo already exists at https://github.com/rudrasatani13/SherpaLabs and is
-public. (The Phase 4 brand work may later move this under a `sherpa-labs/`
-organisation; if so, redirect the remote and re-apply branch protection at the
-new path.)
+The repo lives at https://github.com/sherpa-labs-io/SherpaLabs and is
+public. It was originally created at `rudrasatani13/SherpaLabs` and
+transferred into the `sherpa-labs-io` GitHub organisation on
+2026-05-23. GitHub preserves auto-redirects from the old path, so any
+remaining external links continue to resolve. (`sherpa-labs` itself was
+already taken on GitHub by an inactive 2016 org with zero repos; the
+`-io` suffix keeps brand continuity with the npm `@sherpa-labs/` scope.)
 
 ## 2. Initial history push — ✅ Done
 
@@ -39,7 +42,7 @@ default branch will be re-evaluated when CI lands in Phase 6.
 Applied with:
 
 ```sh
-gh api -X PUT repos/rudrasatani13/SherpaLabs/branches/main/protection \
+gh api -X PUT repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
   --input - <<'JSON'
 {
   "required_status_checks": null,
@@ -74,7 +77,7 @@ JSON
 > Full command (run after the first `ci` workflow run lands on `main`):
 >
 > ```sh
-> gh api -X PUT repos/rudrasatani13/SherpaLabs/branches/main/protection \
+> gh api -X PUT repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
 >   --input - <<'JSON'
 > {
 >   "required_status_checks": {
@@ -99,13 +102,13 @@ JSON
 > Verify the new required check landed:
 >
 > ```sh
-> gh api repos/rudrasatani13/SherpaLabs/branches/main/protection \
+> gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
 >   | jq '.required_status_checks'
 > ```
 
 ### Verification — sanitised `gh api` output
 
-`gh api repos/rudrasatani13/SherpaLabs/branches/main/protection`, with
+`gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection`, with
 `url` fields stripped:
 
 ```json
@@ -158,13 +161,13 @@ Mapping back to the Phase 3 deliverable list:
 | Enforce on admins                   | `enforce_admins.enabled: true`                 | ✅    |
 | Required CI status checks           | `required_status_checks: null`                 | 🔜 Re-apply after first `ci` run lands on `main` |
 
-> **Solo-owner caveat.** With `enforce_admins: true` and
-> `required_approving_review_count: 1`, the repo owner cannot merge their own
-> PRs into `main` without a second reviewer. Until there is a second
-> collaborator, the practical way to release is either to (a) temporarily
-> disable `enforce_admins` for the release merge, or (b) get a one-off review
-> from another GitHub account. This matches the Phase 3 spec, which calls for
-> these rules explicitly.
+> **Solo-owner note.** With `enforce_admins: true` and
+> `required_approving_review_count: 1`, the repo owner cannot self-approve
+> their own PRs into `main`. This is resolved by the auto-approve workflow
+> at `.github/workflows/auto-approve.yml`, which uses a fine-grained PAT
+> from the `Rudra1543` bot-identity account (an organisation member with
+> write access) to approve PRs opened by `rudrasatani13`. See
+> [section 10](#10-auto-approve-bot-reviewer----done).
 
 ## 5. Branch protection on `develop` — 🔜 Optional
 
@@ -172,7 +175,7 @@ Lighter rules than `main` — useful once there is a second collaborator. Apply
 when ready:
 
 ```sh
-gh api -X PUT repos/rudrasatani13/SherpaLabs/branches/develop/protection \
+gh api -X PUT repos/sherpa-labs-io/SherpaLabs/branches/develop/protection \
   --input - <<'JSON'
 {
   "required_status_checks": null,
@@ -229,13 +232,13 @@ the corresponding deploy workflows land. Phase 6 only requires `NPM_TOKEN`.
 6. In GitHub: `Settings → Secrets and variables → Actions → New repository secret`,
    name = `NPM_TOKEN`, value = the token. Or:
    ```sh
-   gh secret set NPM_TOKEN --repo rudrasatani13/SherpaLabs
+   gh secret set NPM_TOKEN --repo sherpa-labs-io/SherpaLabs
    ```
 
 ### Verifying the secret is set (without revealing the value)
 
 ```sh
-gh secret list --repo rudrasatani13/SherpaLabs
+gh secret list --repo sherpa-labs-io/SherpaLabs
 ```
 
 You should see `NPM_TOKEN` with an `Updated` timestamp. Values cannot be
@@ -266,10 +269,44 @@ once the first run lands on `main`.
 Re-run any time you want to confirm the state is unchanged:
 
 ```sh
-gh repo view rudrasatani13/SherpaLabs --json defaultBranchRef,visibility
-gh api repos/rudrasatani13/SherpaLabs/branches | jq '.[] | {name, protected}'
-gh api repos/rudrasatani13/SherpaLabs/branches/main/protection \
+gh repo view sherpa-labs-io/SherpaLabs --json defaultBranchRef,visibility
+gh api repos/sherpa-labs-io/SherpaLabs/branches | jq '.[] | {name, protected}'
+gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
   | jq 'del(.. | .url?)'
-gh secret list --repo rudrasatani13/SherpaLabs
-gh workflow list --repo rudrasatani13/SherpaLabs
+gh secret list --repo sherpa-labs-io/SherpaLabs
+gh workflow list --repo sherpa-labs-io/SherpaLabs
 ```
+
+## 10. Auto-approve bot reviewer — ✅ Done
+
+Branch protection on `main` requires one approving review with
+`enforce_admins: true`, which means the repo owner cannot self-approve
+their own PRs. To satisfy this without a second human reviewer, the
+`Rudra1543` GitHub account is enrolled as a bot identity:
+
+- `Rudra1543` is a **member** of the `sherpa-labs-io` organisation
+  (members can issue fine-grained PATs scoped to org repos; outside
+  collaborators cannot).
+- `Rudra1543` also has direct **write** access to this repo.
+- A fine-grained PAT issued by `Rudra1543`, scoped to
+  `sherpa-labs-io/SherpaLabs` only with `Pull requests: Read and write`,
+  is stored as the repo secret `BOT_PAT`.
+- `.github/workflows/auto-approve.yml` runs on every non-draft PR
+  opened by `rudrasatani13` and uses `BOT_PAT` to leave an approving
+  review via [`hmarr/auto-approve-action`](https://github.com/hmarr/auto-approve-action).
+
+To rotate the PAT (recommended yearly):
+
+1. Generate a new fine-grained PAT on the `Rudra1543` account with the
+   same scope as above.
+2. `gh secret set BOT_PAT --repo sherpa-labs-io/SherpaLabs` and paste
+   the new value.
+3. Revoke the old PAT in Rudra1543's settings.
+
+To revoke the bot entirely (e.g. if `BOT_PAT` is compromised):
+
+1. Delete the secret: `gh secret delete BOT_PAT --repo sherpa-labs-io/SherpaLabs`.
+2. Revoke the PAT in Rudra1543's GitHub settings.
+3. Remove or disable `.github/workflows/auto-approve.yml`. Until a
+   replacement reviewer is in place, fall back to having Rudra1543
+   approve manually via `gh pr review --approve` from that account.
