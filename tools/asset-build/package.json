@@ -4,6 +4,13 @@
   "private": true,
   "description": "Rasterises Sherpa Labs brand SVG masters into the favicon PNG set and the default Open Graph image.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "tools/asset-build"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/tools/asset-build#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "scripts": {
     "build": "node build.mjs"

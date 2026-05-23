@@ -4,6 +4,13 @@
   "private": true,
   "description": "MCP (Model Context Protocol) parsing and lint rules engine for aimcp-lint.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "packages/core-mcp"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/core-mcp#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

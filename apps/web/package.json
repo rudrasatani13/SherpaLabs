@@ -4,6 +4,13 @@
   "private": true,
   "description": "Sherpa Labs dashboard — Next.js 14 (closed-source).",
   "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "apps/web"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/apps/web#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "scripts": {
     "build": "tsc --build",

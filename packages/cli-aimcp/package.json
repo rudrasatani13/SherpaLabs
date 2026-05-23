@@ -4,6 +4,13 @@
   "private": true,
   "description": "aimcp-lint — open-source MCP linter CLI (Phase 20+).",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "packages/cli-aimcp"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/cli-aimcp#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "bin": {
     "aimcp-lint": "./dist/cli.js"

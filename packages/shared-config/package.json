@@ -4,6 +4,13 @@
   "private": true,
   "description": "Shared TypeScript, ESLint, and Prettier presets for the Sherpa Labs monorepo.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "directory": "packages/shared-config"
+  },
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/shared-config#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "main": "./eslint.config.js",
   "exports": {
