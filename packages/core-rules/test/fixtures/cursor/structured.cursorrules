@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "name": "Frontend Conventions",
+  "description": "Rules for our Next.js dashboard",
+  "rules": [
+    {
+      "name": "TypeScript Style",
+      "pattern": "**/*.ts",
+      "rules": [
+        "MUST use ES modules; never CommonJS.",
+        "MUST NOT use the `any` type. Prefer `unknown` and narrow.",
+        "SHOULD use named exports unless a default export is idiomatic."
+      ]
+    },
+    {
+      "name": "React Components",
+      "pattern": "**/*.tsx",
+      "rules": [
+        "MUST be function components.",
+        "SHOULD keep components under 200 lines.",
+        "MAY use `useEffect` only when no better alternative exists."
+      ]
+    }
+  ]
+}

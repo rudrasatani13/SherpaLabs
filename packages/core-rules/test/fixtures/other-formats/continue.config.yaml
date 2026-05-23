@@ -1,0 +1,31 @@
+name: Internal Continue Config
+version: 0.0.1
+
+models:
+  - title: Claude Sonnet
+    provider: anthropic
+    model: claude-sonnet-4-6
+    apiKey: ${ANTHROPIC_API_KEY}
+
+systemMessage: |
+  You are an expert TypeScript engineer working on the Sherpa Labs monorepo.
+  Prefer minimal diffs and never bypass pre-commit hooks.
+
+customCommands:
+  - name: refactor
+    description: Refactor selected code without changing behavior
+    prompt: |
+      Refactor the selected code for clarity. Preserve behavior.
+      MUST keep public API stable. MUST NOT widen exported types.
+  - name: explain
+    description: Explain the selected code line by line
+    prompt: Explain what the selected code does. Use plain language.
+
+slashCommands:
+  - name: review
+    description: Run a focused code review on the current diff
+
+rules:
+  - MUST NOT log secrets.
+  - SHOULD use Vitest for new tests.
+  - MAY use Playwright for end-to-end tests.

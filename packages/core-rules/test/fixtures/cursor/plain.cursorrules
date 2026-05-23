@@ -1,0 +1,14 @@
+# Cursor Rules — Plain Text Format
+
+You are an expert TypeScript developer. Apply the following rules to every change.
+
+## Style
+
+- MUST use single quotes for strings.
+- MUST NOT use `any`.
+- SHOULD prefer arrow functions for callbacks.
+
+## Imports
+
+- MUST sort imports alphabetically within each group.
+- MUST use the `@/` alias for app-internal imports.

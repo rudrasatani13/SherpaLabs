@@ -1,0 +1,7 @@
+name: Broken Continue Config
+models:
+  - title: Claude
+    provider: anthropic
+    model: claude-sonnet
+    apiKey: ${ANTHROPIC_API_KEY
+systemMessage: this :: is :: broken

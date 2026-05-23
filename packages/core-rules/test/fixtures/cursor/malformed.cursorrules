@@ -1,0 +1,3 @@
+{
+  "rules": ["MUST commit Prettier output.", "SHOULD avoid hard tabs."],
+}
