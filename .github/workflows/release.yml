@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           # Full history so Changesets can compute version bumps and tags.
           fetch-depth: 0
@@ -34,7 +34,7 @@ jobs:
         run: corepack enable
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -50,7 +50,7 @@ jobs:
       # pending; when that PR is merged, publishes the bumped packages
       # via the `publish` script (`pnpm release`).
       - name: Create Release Pull Request or Publish
-        uses: changesets/action@v1
+        uses: changesets/action@57dd5be9ba8852146913fabe3c122b219bb90fa2 # v1.4.9
         with:
           version: pnpm changeset version
           publish: pnpm release
