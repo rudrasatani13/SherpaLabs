@@ -9,7 +9,7 @@ export function computeLineStarts(content: string): readonly number[] {
   const starts: number[] = [0];
 
   for (let index = 0; index < content.length; index += 1) {
-    if (content[index] === '\n') {
+    if (content.charAt(index) === '\n') {
       starts.push(index + 1);
     }
   }
