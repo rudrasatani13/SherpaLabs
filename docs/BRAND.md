@@ -16,8 +16,8 @@ change.
 | Tagline | **Better rules. Smarter agents.** |
 | Primary domain | `sherpalabs.cloud` |
 | npm scope | `@sherpa-labs/` (Reserved on npm registry) |
-| GitHub org slug | **N/A** (Staying at `rudrasatani13/SherpaLabs`) |
-| GitHub repo (current) | `rudrasatani13/SherpaLabs` |
+| GitHub org slug | `sherpa-labs-io` (`sherpa-labs` was taken on GitHub by an inactive 2016 org; `sherpa-labs-io` keeps brand continuity) |
+| GitHub repo (current) | `sherpa-labs-io/SherpaLabs` |
 | Primary email | `hello@sherpalabs.cloud` (Cloudflare Email Routing active) |
 | Transactional sender | `noreply@sherpalabs.cloud` (Cloudflare Email Routing active) |
 

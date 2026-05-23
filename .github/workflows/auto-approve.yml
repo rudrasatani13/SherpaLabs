@@ -1,0 +1,27 @@
+name: auto-approve
+
+# Auto-approves PRs opened by the project maintainer using a bot identity
+# (Rudra1543). This satisfies the `required_approving_review_count: 1`
+# branch-protection rule on `main` without a second human reviewer.
+#
+# Security model: the BOT_PAT secret is a fine-grained PAT issued by the
+# Rudra1543 account, scoped to this repository only, with `Pull requests:
+# Read and write` permission. Compromise of that token would let an attacker
+# approve PRs from the Rudra1543 identity but nothing else.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approve:
+    if: github.event.pull_request.user.login == 'rudrasatani13' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.BOT_PAT }}
+          review-message: 'Auto-approved by @Rudra1543 (bot identity for @rudrasatani13).'

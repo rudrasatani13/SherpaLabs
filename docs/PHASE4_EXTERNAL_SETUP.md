@@ -24,7 +24,7 @@ in place so future-you can re-run them.
 | # | Step                          | Status                | Evidence in section |
 | - | ----------------------------- | --------------------- | ------------------- |
 | 1 | npm scope `@sherpa-labs`      | ✅ Done — reserved via @sherpa-labs/claim | §1 |
-| 2 | GitHub org `sherpa-labs`      | ✅ Done — staying at rudrasatani13/SherpaLabs | §2 |
+| 2 | GitHub org `sherpa-labs-io`   | ✅ Done — repo transferred from rudrasatani13/SherpaLabs to sherpa-labs-io/SherpaLabs on 2026-05-23 | §2 |
 | 3 | Domain `sherpalabs.cloud`     | ✅ Done — resolves and redirects to GitHub | §3 |
 | 4 | Cloudflare Email Routing      | ✅ Done — MX/SPF active, catch-all forwarded to Gmail | §4 |
 | 5 | Paddle account + KYC          | 🚫 **Blocked** — signed up + welcome email + sandbox dashboard accessible, **KYC documents not yet uploaded** | §5 |
@@ -92,13 +92,24 @@ npm view @sherpa-labs/claim                  # confirms publish worked
 
 ---
 
-## 2. GitHub organisation `sherpa-labs` — ✅ Done
+## 2. GitHub organisation `sherpa-labs-io` — ✅ Done
 
-The repo currently lives at `rudrasatani13/SherpaLabs`. Phase 4 calls
-for moving it under a `sherpa-labs/` org so the brand name and the
-GitHub URL line up.
+The repo was originally created at `rudrasatani13/SherpaLabs` and was
+transferred into the `sherpa-labs-io` GitHub organisation on
+**2026-05-23**.
 
-### Audit 2026-05-22 — slug is already owned
+### Why `sherpa-labs-io` and not `sherpa-labs`
+
+The audit on 2026-05-22 (preserved below) confirmed that the
+`sherpa-labs` GitHub login was registered by an unrelated account on
+2016-11-15 — nearly a decade before this project. The squatter org has
+zero public repos but GitHub will not release inactive org names
+absent a trademark claim. Rather than file a slow name-reclaim
+request, the org was created as `sherpa-labs-io` (the `-io` suffix
+keeps brand continuity with the npm `@sherpa-labs/` scope, which is
+unaffected because GitHub and npm namespaces are independent).
+
+### Original audit 2026-05-22 — slug `sherpa-labs` is already owned
 
 ```sh
 $ gh api orgs/sherpa-labs --jq '{login, id, created_at, public_repos, html_url}'
@@ -111,85 +122,38 @@ $ gh api orgs/sherpa-labs --jq '{login, id, created_at, public_repos, html_url}'
 }
 ```
 
-The `sherpa-labs` GitHub login was registered by an unrelated account
-on **2016-11-15** — nearly a decade before this project. It has zero
-public repos but the slug is held, and GitHub does not release inactive
-org names absent a trademark claim.
+### What was done
 
-### Resolution options (owner decision required)
-
-Pick one before any code in this monorepo gets renamed:
-
-1. **Use a different GitHub org slug** while keeping the public
-   product name "Sherpa Labs". Candidates that match the
-   `sherpalabs.cloud` domain and are worth checking against
-   `gh api orgs/<slug>`:
-   - `sherpalabs` (single word, matches domain)
-   - `sherpalabs-dev`
-   - `sherpalabs-cloud`
-   - `sherpa-cloud`
-   - `sherpa-rules`
-2. **Stay at `rudrasatani13/SherpaLabs`** until a trademark or
-   commercial reason justifies negotiating the slug. The README,
-   branch protection, and CI already work at this path.
-3. **Contact the current owner of `sherpa-labs`** to request a
-   transfer. Long shot, low expected return — only worth it if there is
-   a real trademark hook.
-
-### Consequences
-
-- **`docs/BRAND.md`** lists the GitHub org slug as `sherpa-labs`. That
-  row must be updated in the same change as the decision, otherwise
-  the brand guide will diverge from reality.
-- **npm scope `@sherpa-labs`** (see §1) is *not* affected by this
-  blocker — npm and GitHub namespaces are independent. The scope can
-  still be reserved as `@sherpa-labs` even if the GitHub org settles
-  on a different slug. Worth doing so the package names in this repo
-  don't need to change.
-- **Repo transfer + branch-protection re-application steps below
-  remain valid** once a slug is chosen — they apply to whichever org
-  ends up owning the repo.
-
-### Steps (after a slug is chosen)
-
-1. Visit https://github.com/organizations/new.
-2. Choose the **Free** plan.
-3. Org name (URL slug): `sherpa-labs`. Display name: `Sherpa Labs`.
-4. Contact email: founder address.
-5. Once created, transfer the repo:
-   - Repo **Settings → General → Transfer ownership** →
-     `sherpa-labs`.
-   - Accept the transfer from the org side.
-   - GitHub will set up a redirect from
-     `rudrasatani13/SherpaLabs` → `sherpa-labs/SherpaLabs`. Local
-     `git remote -v` keeps working, but update the remote to the
-     canonical URL:
-
-     ```sh
-     git remote set-url origin git@github.com:sherpa-labs/SherpaLabs.git
-     git remote -v
-     ```
-
-6. **Re-apply branch protection** after transfer — protection rules
-   do not always carry across an org transfer cleanly. Re-run the PUT
-   from `docs/GITHUB_SETUP.md` §4 against the new path
-   (`repos/sherpa-labs/SherpaLabs/branches/main/protection`).
-7. Update `docs/GITHUB_SETUP.md` and `README.md` to point at the new
-   URL in the same commit as the rename.
+1. Created the `sherpa-labs-io` GitHub organisation (Free plan,
+   founder account as Owner) at
+   https://github.com/account/organizations/new.
+2. Invited `Rudra1543` as an org **Member** (required for fine-grained
+   PAT scoping later — see [`GITHUB_SETUP.md`](./GITHUB_SETUP.md) §10).
+3. Transferred the repo via `gh api -X POST repos/rudrasatani13/SherpaLabs/transfer
+   -f new_owner=sherpa-labs-io -f new_name=SherpaLabs`.
+4. Updated the local clone's remote URL:
+   ```sh
+   git remote set-url origin git@github.com:sherpa-labs-io/SherpaLabs.git
+   ```
+5. Verified that branch protection, secrets (`NPM_TOKEN`), workflows
+   (`ci`, `release`), and collaborators all transferred intact — see
+   [`GITHUB_SETUP.md`](./GITHUB_SETUP.md) §4 + §10 for the current
+   state.
 
 ### Verification
 
 ```sh
-gh repo view sherpa-labs/SherpaLabs --json defaultBranchRef,visibility
-gh api repos/sherpa-labs/SherpaLabs/branches/main/protection \
+gh repo view sherpa-labs-io/SherpaLabs --json defaultBranchRef,visibility
+gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
   | jq 'del(.. | .url?)'
 ```
 
 ### Owner notes
 
-- Org created: N/A (Stay at `rudrasatani13/SherpaLabs`)
-- Repo transferred: N/A (Stay at `rudrasatani13/SherpaLabs`)
-- Branch protection re-applied: N/A (Already configured on `rudrasatani13/SherpaLabs`)
+- Org created: `sherpa-labs-io` on 2026-05-23
+- Repo transferred: `rudrasatani13/SherpaLabs` → `sherpa-labs-io/SherpaLabs` on 2026-05-23
+- Branch protection re-applied: not needed — transferred intact (verified)
+- Cloudflare apex redirect: still points at `github.com/rudrasatani13/SherpaLabs`; GitHub auto-redirects, but update the Cloudflare Page Rule to the canonical URL `github.com/sherpa-labs-io/SherpaLabs` next time the redirect rules are touched.
 
 ---
 
