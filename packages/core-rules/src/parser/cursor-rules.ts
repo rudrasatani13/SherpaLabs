@@ -11,14 +11,6 @@ import { makeParseError, type ParseOptions } from './errors.js';
 import { computeLineStarts, buildLocation } from './location.js';
 import { parseMarkdownContent, buildRuleFile } from './markdown.js';
 
-interface JsonShapeCandidate {
-  readonly version?: unknown;
-  readonly rules?: unknown;
-  readonly globs?: unknown;
-  readonly description?: unknown;
-  readonly name?: unknown;
-}
-
 export function parseCursorRules(content: string, options: ParseOptions = {}): RuleSet {
   const trimmed = content.trimStart();
 
@@ -144,7 +136,7 @@ function collectStrings(value: unknown, out: string[]): void {
   }
 
   if (value !== null && typeof value === 'object') {
-    const obj = value as Record<string, unknown> & JsonShapeCandidate;
+    const props = new Map(Object.entries(value as Record<string, unknown>));
 
     for (const key of [
       'rule',
@@ -155,8 +147,8 @@ function collectStrings(value: unknown, out: string[]): void {
       'instructions',
       'message',
     ]) {
-      if (key in obj) {
-        collectStrings(obj[key], out);
+      if (props.has(key)) {
+        collectStrings(props.get(key), out);
       }
     }
   }

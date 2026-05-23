@@ -114,9 +114,11 @@ function pushStringsFromArrayOfObjects(
       continue;
     }
 
-    const obj = entry as Record<string, unknown>;
+    const props = new Map(Object.entries(entry as Record<string, unknown>));
     for (const key of keys) {
-      pushStrings(obj[key], out);
+      if (props.has(key)) {
+        pushStrings(props.get(key), out);
+      }
     }
   }
 }
