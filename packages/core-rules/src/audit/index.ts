@@ -82,3 +82,4 @@ export type {
   AuditRuleViolationInput,
   ResolvedAuditConfig,
 } from './types.js';
+export * from './reporting/index.js';

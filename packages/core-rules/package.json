@@ -31,6 +31,10 @@
     "./audit": {
       "types": "./dist/audit/index.d.ts",
       "default": "./dist/audit/index.js"
+    },
+    "./audit/reporting": {
+      "types": "./dist/audit/reporting/index.d.ts",
+      "default": "./dist/audit/reporting/index.js"
     }
   },
   "files": [
