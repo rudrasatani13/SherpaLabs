@@ -1,0 +1,10 @@
+{
+  "name": "express-fixture",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "express": "4.19.0",
+    "hono": "4.5.0"
+  }
+}

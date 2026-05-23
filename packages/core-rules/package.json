@@ -23,6 +23,10 @@
     "./parser": {
       "types": "./dist/parser/index.d.ts",
       "default": "./dist/parser/index.js"
+    },
+    "./stack": {
+      "types": "./dist/stack/index.d.ts",
+      "default": "./dist/stack/index.js"
     }
   },
   "files": [
