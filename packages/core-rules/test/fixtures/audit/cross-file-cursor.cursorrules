@@ -1,0 +1,4 @@
+# Cursor Rules
+
+- Do not use pnpm.
+- SHOULD run tests before handoff.

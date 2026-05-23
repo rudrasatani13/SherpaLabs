@@ -77,10 +77,10 @@ describe('audit rules', () => {
   it('disables a rule via config', () => {
     const registry = createAuditRuleRegistry(defaultAuditRules);
     const config = resolveAuditConfig({ disabledRules: ['core.parse-errors'] });
+    const enabledRuleIds = registry.getEnabledRules(config).map((rule) => rule.id);
 
-    expect(registry.getEnabledRules(config).map((rule) => rule.id)).toEqual([
-      'core.parse-warnings',
-    ]);
+    expect(enabledRuleIds).not.toContain('core.parse-errors');
+    expect(enabledRuleIds).toContain('core.parse-warnings');
   });
 
   it('applies a severity override via config', () => {
