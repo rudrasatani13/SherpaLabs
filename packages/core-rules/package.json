@@ -14,10 +14,15 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./parser": {
+      "types": "./dist/parser/index.d.ts",
+      "default": "./dist/parser/index.js"
     }
   },
   "files": [
@@ -25,10 +30,19 @@
   ],
   "scripts": {
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sherpa-labs/core-utils": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*",
+    "fast-glob": "^3.3.2",
+    "marked": "^15.0.4",
+    "yaml": "^2.6.1"
   },
   "devDependencies": {
     "@sherpa-labs/shared-config": "workspace:*",
-    "@sherpa-labs/shared-types": "workspace:*"
+    "@types/node": "^25.9.1",
+    "vitest": "^4.1.7"
   }
 }

@@ -1,0 +1,17 @@
+# Windsurf Rules
+
+These rules govern how Windsurf assists in this repository.
+
+## Editing
+
+- MUST avoid speculative refactors during a feature task.
+- SHOULD ask before deleting any file.
+
+## Testing
+
+- MUST run `pnpm test --run` before claiming a task is complete.
+- SHOULD include a brief test plan in the response.
+
+## Style
+
+- MUST follow Prettier output exactly; no manual reformatting.

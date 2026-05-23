@@ -24,3 +24,7 @@ docs/CONTRIBUTING.md
 docs/GITHUB_SETUP.md
 docs/PHASE4_EXTERNAL_SETUP.md
 docs/SETUP.md
+
+# Parser fixtures are crafted to exercise edge cases (intentionally malformed
+# JSON/YAML, varied whitespace, exact line counts) and must not be reformatted.
+packages/core-rules/test/fixtures
