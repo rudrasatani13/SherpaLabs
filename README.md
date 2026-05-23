@@ -68,10 +68,22 @@ The platform-wide tech stack is documented in `SHERPA_LABS_MASTER_PLAN.md`. The 
 - `apps/*` are proprietary (all rights reserved) — see each app's `LICENSE` file.
 - The repo-root `LICENSE` is MIT and applies to build configuration, docs, and tooling not otherwise marked.
 
-## Brand
+## Documentation
 
-The Sherpa Labs name, palette, typography, and asset rules live in [`docs/BRAND.md`](./docs/BRAND.md). External account setup (npm scope, GitHub org, domain, email routing, Paddle KYC) is tracked in [`docs/PHASE4_EXTERNAL_SETUP.md`](./docs/PHASE4_EXTERNAL_SETUP.md).
+Everything a new contributor needs to navigate the project lives under [`docs/`](./docs/):
 
-## Contributing
+| Doc | What's in it |
+| --- | --- |
+| [`docs/SETUP.md`](./docs/SETUP.md) | One-time machine setup — Node, pnpm, gh, Wrangler, editor extensions |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Monorepo layout, what each workspace does, runtime data flows |
+| [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md) | Branching, commits, PR workflow, Changesets release flow |
+| [`docs/CODING_STANDARDS.md`](./docs/CODING_STANDARDS.md) | Naming conventions, file organisation, common patterns |
+| [`docs/DECISIONS/`](./docs/DECISIONS/) | Architecture Decision Records — start with [001](./docs/DECISIONS/001-monorepo-with-pnpm.md) |
+| [`docs/BRAND.md`](./docs/BRAND.md) | Name, palette, typography, asset rules |
+| [`docs/GITHUB_SETUP.md`](./docs/GITHUB_SETUP.md) | Steps for taking the repo public |
+| [`docs/PHASE4_EXTERNAL_SETUP.md`](./docs/PHASE4_EXTERNAL_SETUP.md) | External account setup (npm scope, domain, email routing, Paddle KYC) |
 
-Branching strategy, commit conventions, PR workflow, and the Changesets release flow live in [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md). When you are ready to take the repo public, follow the steps in [`docs/GITHUB_SETUP.md`](./docs/GITHUB_SETUP.md).
+Project strategy and the phase-by-phase build plan live at the repo root:
+
+- [`SHERPA_LABS_MASTER_PLAN.md`](./SHERPA_LABS_MASTER_PLAN.md) — product, pricing, positioning, tech stack rationale.
+- [`SHERPA_LABS_DEVELOPMENT.md`](./SHERPA_LABS_DEVELOPMENT.md) — every implementation phase, in order.
