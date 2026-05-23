@@ -55,6 +55,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Build before lint: typescript-eslint's type-aware rules resolve
+      # workspace deps (e.g. `@sherpa-labs/shared-types`) via each package's
+      # published `types` field, which points at `dist/`. Without a fresh
+      # build, lint sees stale or missing `.d.ts` and flags every property
+      # access on those types as "unsafe member access on unresolved type".
+      - name: Build
+        run: pnpm build
+
       - name: Lint
         run: pnpm lint
 
@@ -66,6 +74,3 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Build
-        run: pnpm build

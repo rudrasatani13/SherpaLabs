@@ -1,0 +1,13 @@
+{
+  "name": "polyglot-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@nestjs/core": "10.3.0",
+    "@nestjs/common": "10.3.0",
+    "fastify": "4.26.0"
+  },
+  "devDependencies": {
+    "typescript": "5.4.5"
+  }
+}

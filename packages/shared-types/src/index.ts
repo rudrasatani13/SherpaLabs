@@ -4,3 +4,4 @@ export type * from './common';
 export type * from './domain';
 export type * from './mcp';
 export type * from './rule-files';
+export type * from './stack';

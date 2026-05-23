@@ -1,0 +1,4 @@
+name: continue-fixture
+version: 1.0.0
+rules:
+  - MUST type hint public functions.
