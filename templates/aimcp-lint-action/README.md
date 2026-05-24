@@ -36,7 +36,7 @@ jobs:
 |-------|----------|---------|-------------|
 | `server-command` | yes | — | Command to start your MCP server (e.g., `'node ./server.mjs'`) |
 | `min-score` | no | `80` | Minimum score required to pass (0–100) |
-| `format` | no | `terminal` | Output format: `terminal`, `json`, or `markdown` |
+| `format` | no | `terminal` | Rendering format for the step summary and PR comment: `terminal`, `json`, or `markdown`. The CLI run always uses `--format json --quiet` internally so outputs stay machine-readable. |
 | `config` | no | — | Path to `.aimcp-lint.json` config file |
 | `working-directory` | no | `.` | Working directory for the lint run |
 | `post-comment` | no | `true` | Post or update a PR comment with lint results |
@@ -53,16 +53,17 @@ jobs:
 
 ## Step Summary
 
-Each run writes a summary table to the GitHub Actions step summary, including:
+Each run writes rendered results to the GitHub Actions step summary. The `format` input controls the summary rendering:
 
-- Score and threshold
-- Pass/fail status
-- Server command
-- Full JSON report in a collapsible section
+- `terminal` shows the compact default table plus a collapsible JSON report.
+- `markdown` shows a richer GitHub-flavored Markdown report with summary fields, category subscores, violations, and the JSON report.
+- `json` shows the raw JSON report in a fenced block.
+
+The lint command itself still runs with `--format json --quiet` so action outputs are parsed from a deterministic report file.
 
 ## PR Comments
 
-When `post-comment` is `true` (default) and the workflow runs on a `pull_request` event, a comment is posted or updated with the lint results. Consecutive runs on the same PR update the existing comment.
+When `post-comment` is `true` (default) and the workflow runs on a `pull_request` event, a comment is posted or updated with the lint results. The comment uses the same `format` rendering as the step summary and still posts when the lint threshold fails. Consecutive runs on the same PR update the existing comment.
 
 ## Exit Codes
 
@@ -104,7 +105,7 @@ jobs:
     server-command: 'node ./dist/server.js'
 ```
 
-### Custom threshold and Markdown output
+### Custom threshold and Markdown rendering
 
 ```yaml
 - uses: sherpa-labs/aimcp-lint-action@v1
@@ -195,6 +196,6 @@ Ensure your MCP server dependencies are installed (`npm ci` or equivalent) in a 
 2. The job needs `pull-requests: write` permission.
 3. Set `post-comment: 'true'` (the default).
 
-### Markdown output
+### Markdown rendering
 
-The step summary always shows the JSON report. For Markdown-specific output in PR comments, use `format: 'markdown'` — the raw JSON is still available via the `report-path` output.
+Use `format: 'markdown'` for a richer GitHub-flavored summary and PR comment. The raw JSON report is still available via the `report-path` output, and the CLI execution remains JSON quiet internally for reliable parsing.

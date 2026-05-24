@@ -28,15 +28,15 @@ Lint MCP servers for protocol, schema, security, and performance issues. Generat
 
 ## Inputs
 
-| Name                | Description                                | Required | Default    |
-| ------------------- | ------------------------------------------ | -------- | ---------- |
-| `server-command`    | MCP server start command                   | yes      | —          |
-| `min-score`         | Minimum score threshold (0–100)            | no       | `80`       |
-| `format`            | Output format: terminal, json, or markdown | no       | `terminal` |
-| `config`            | Path to `.aimcp-lint.json`                 | no       | —          |
-| `working-directory` | Working directory for lint run             | no       | `.`        |
-| `post-comment`      | Post PR comment with results               | no       | `true`     |
-| `verbose`           | Enable verbose diagnostics                 | no       | `false`    |
+| Name                | Description                                                                                       | Required | Default    |
+| ------------------- | ------------------------------------------------------------------------------------------------- | -------- | ---------- |
+| `server-command`    | MCP server start command                                                                          | yes      | —          |
+| `min-score`         | Minimum score threshold (0–100)                                                                   | no       | `80`       |
+| `format`            | Summary/comment rendering: terminal, json, or markdown. CLI execution uses JSON quiet internally. | no       | `terminal` |
+| `config`            | Path to `.aimcp-lint.json`                                                                        | no       | —          |
+| `working-directory` | Working directory for lint run                                                                    | no       | `.`        |
+| `post-comment`      | Post PR comment with results                                                                      | no       | `true`     |
+| `verbose`           | Enable verbose diagnostics                                                                        | no       | `false`    |
 
 ## Outputs
 

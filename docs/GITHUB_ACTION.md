@@ -18,15 +18,15 @@ The action template lives in this repo at `templates/aimcp-lint-action/`.
 
 ## Inputs
 
-| Input               | Required | Default    | Description                                   |
-| ------------------- | -------- | ---------- | --------------------------------------------- |
-| `server-command`    | yes      | —          | Command to start your MCP server              |
-| `min-score`         | no       | `80`       | Minimum score to pass (0–100)                 |
-| `format`            | no       | `terminal` | Output format: `terminal`, `json`, `markdown` |
-| `config`            | no       | —          | Path to `.aimcp-lint.json`                    |
-| `working-directory` | no       | `.`        | Working directory                             |
-| `post-comment`      | no       | `true`     | Post PR comment with results                  |
-| `verbose`           | no       | `false`    | Enable verbose diagnostics                    |
+| Input               | Required | Default    | Description                                                                                                             |
+| ------------------- | -------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `server-command`    | yes      | —          | Command to start your MCP server                                                                                        |
+| `min-score`         | no       | `80`       | Minimum score to pass (0–100)                                                                                           |
+| `format`            | no       | `terminal` | Step summary and PR comment rendering: `terminal`, `json`, `markdown`. CLI execution always uses JSON quiet internally. |
+| `config`            | no       | —          | Path to `.aimcp-lint.json`                                                                                              |
+| `working-directory` | no       | `.`        | Working directory                                                                                                       |
+| `post-comment`      | no       | `true`     | Post PR comment with results                                                                                            |
+| `verbose`           | no       | `false`    | Enable verbose diagnostics                                                                                              |
 
 ## Outputs
 
@@ -41,20 +41,20 @@ The action template lives in this repo at `templates/aimcp-lint-action/`.
 
 1. Runs `npx @sherpa-labs/aimcp-lint --format json --quiet` against the provided `server-command`.
 2. Parses the JSON output for `score`, `max_score`, and `passed`.
-3. Writes a summary table to `$GITHUB_STEP_SUMMARY`.
+3. Writes rendered output to `$GITHUB_STEP_SUMMARY` using the `format` input.
 4. When `passed` is `false`, sets the step as failed.
-5. On `pull_request` events with `post-comment: true`, posts or updates a PR comment.
+5. On `pull_request` events with `post-comment: true`, posts or updates a PR comment using the same rendering, even when the lint threshold fails.
 
 ## Step Summary Example
 
 ```
-## ✅ aimcp-lint Results
+## aimcp-lint Results
 
 | Metric | Value |
 |--------|-------|
 | Score | `95/100` |
 | Threshold | `80` |
-| Result | ✅ PASS |
+| Result | PASS |
 | Server Command | `node ./server.mjs` |
 
 <details><summary>JSON Report</summary>
@@ -65,14 +65,14 @@ The action template lives in this repo at `templates/aimcp-lint-action/`.
 ## PR Comment Example
 
 ```markdown
-## ✅ aimcp-lint Report
+## aimcp-lint Report
 
-| Metric | Value    |
-| ------ | -------- |
-| Score  | `95/100` |
-| Result | PASS     |
+**Result:** PASS
 
-All MCP lint checks passed. 🎉
+| Metric    | Value    |
+| --------- | -------- |
+| Score     | `95/100` |
+| Threshold | `80`     |
 ```
 
 ## Permissions

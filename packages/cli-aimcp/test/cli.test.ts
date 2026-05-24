@@ -1605,7 +1605,8 @@ async function runCliTty(
   cwd?: string,
 ): Promise<CliResult> {
   return await new Promise<CliResult>((resolvePromise, rejectPromise) => {
-    const env = forceEnv ? { ...process.env, FORCE_COLOR: '1' } : { ...process.env };
+    const { NO_COLOR: _NO_COLOR, ...baseEnv } = process.env;
+    const env = forceEnv ? { ...baseEnv, FORCE_COLOR: '1' } : baseEnv;
     const child = spawn(process.execPath, [binaryPath, ...args], {
       cwd: cwd ?? packageRoot,
       env,

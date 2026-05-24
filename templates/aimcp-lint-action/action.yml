@@ -14,7 +14,7 @@ inputs:
     required: false
     default: '80'
   format:
-    description: 'Output format for step summary (terminal, json, or markdown)'
+    description: 'Rendering format for step summary/comment output (terminal, json, or markdown). CLI execution always uses JSON quiet internally.'
     required: false
     default: 'terminal'
   config:
@@ -56,23 +56,39 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       env:
         AIMCP_RESULT_FILE: ${{ runner.temp }}/aimcp-lint-result.json
+        AIMCP_SUMMARY_FILE: ${{ runner.temp }}/aimcp-lint-summary.md
+        AIMCP_COMMENT_FILE: ${{ runner.temp }}/aimcp-lint-comment.md
+        AIMCP_ACTION_FORMAT: ${{ inputs.format }}
+        AIMCP_CONFIG: ${{ inputs.config }}
+        AIMCP_MIN_SCORE: ${{ inputs.min-score }}
+        AIMCP_SERVER_COMMAND: ${{ inputs.server-command }}
+        AIMCP_VERBOSE: ${{ inputs.verbose }}
       run: |
-        CONFIG_FLAG=""
-        if [ -n "${{ inputs.config }}" ]; then
-          CONFIG_FLAG="--config ${{ inputs.config }}"
+        case "$AIMCP_ACTION_FORMAT" in
+          terminal|json|markdown)
+            ;;
+          *)
+            echo "::error::format must be terminal, json, or markdown"
+            exit 2
+            ;;
+        esac
+
+        CONFIG_FLAG=()
+        if [ -n "$AIMCP_CONFIG" ]; then
+          CONFIG_FLAG=(--config "$AIMCP_CONFIG")
         fi
 
-        VERBOSE_FLAG=""
-        if [ "${{ inputs.verbose }}" = "true" ]; then
-          VERBOSE_FLAG="--verbose"
+        VERBOSE_FLAG=()
+        if [ "$AIMCP_VERBOSE" = "true" ]; then
+          VERBOSE_FLAG=(--verbose)
         fi
 
         set +e
         npx @sherpa-labs/aimcp-lint \
           --format json --quiet \
-          --fail-under "${{ inputs.min-score }}" \
-          $CONFIG_FLAG \
-          $VERBOSE_FLAG \
+          --fail-under "$AIMCP_MIN_SCORE" \
+          "${CONFIG_FLAG[@]}" \
+          "${VERBOSE_FLAG[@]}" \
           -- ${{ inputs.server-command }} > "$AIMCP_RESULT_FILE" 2>/dev/null
         EXIT_CODE=$?
         set -e
@@ -86,67 +102,151 @@ runs:
         echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
         echo "report_path=$AIMCP_RESULT_FILE" >> "$GITHUB_OUTPUT"
 
-        STATUS_EMOJI="❌"
-        STATUS_TEXT="FAIL"
-        if [ "$PASSED" = "true" ]; then
-          STATUS_EMOJI="✅"
-          STATUS_TEXT="PASS"
-        fi
+        node - "$AIMCP_RESULT_FILE" "$AIMCP_ACTION_FORMAT" "$AIMCP_SUMMARY_FILE" "$AIMCP_COMMENT_FILE" "$AIMCP_MIN_SCORE" "$AIMCP_SERVER_COMMAND" <<'NODE'
+        const fs = require('node:fs');
 
-        {
-          echo "## ${STATUS_EMOJI} aimcp-lint Results"
-          echo ""
-          echo "| Metric | Value |"
-          echo "|--------|-------|"
-          echo "| Score | \`${SCORE}/${MAX_SCORE}\` |"
-          echo "| Threshold | \`${{ inputs.min-score }}\` |"
-          echo "| Result | ${STATUS_EMOJI} ${STATUS_TEXT} |"
-          echo "| Server Command | \`${{ inputs.server-command }}\` |"
-          echo ""
-          echo "<details><summary>JSON Report</summary>"
-          echo ""
-          echo '```json'
-          cat "$AIMCP_RESULT_FILE"
-          echo '```'
-          echo ""
-          echo "</details>"
-        } >> "$GITHUB_STEP_SUMMARY"
+        const [, , resultPath, actionFormat, summaryPath, commentPath, minScore, serverCommand] =
+          process.argv;
+        let raw = '';
+        let report = { score: 0, max_score: 100, passed: false };
+
+        try {
+          raw = fs.readFileSync(resultPath, 'utf8');
+          report = JSON.parse(raw);
+        } catch {
+          raw = JSON.stringify(report, null, 2);
+        }
+
+        const score = report.score ?? 0;
+        const maxScore = report.max_score ?? 100;
+        const passed = report.passed === true;
+        const result = passed ? 'PASS' : 'FAIL';
+        const summary = report.summary ?? {};
+        const categories = report.category_subscores ?? {};
+        const violations = Array.isArray(report.violations) ? report.violations : [];
+
+        function escapeMarkdown(value) {
+          return String(value).replaceAll('|', '\\|').replaceAll('\n', ' ');
+        }
+
+        function renderJson() {
+          return [
+            '## aimcp-lint JSON Report',
+            '',
+            '```json',
+            raw.trim(),
+            '```',
+            '',
+          ].join('\n');
+        }
+
+        function renderTerminal() {
+          return [
+            '## aimcp-lint Results',
+            '',
+            '| Metric | Value |',
+            '|--------|-------|',
+            `| Score | \`${score}/${maxScore}\` |`,
+            `| Threshold | \`${minScore}\` |`,
+            `| Result | ${result} |`,
+            `| Server Command | \`${escapeMarkdown(serverCommand)}\` |`,
+            '',
+            '<details><summary>JSON Report</summary>',
+            '',
+            '```json',
+            raw.trim(),
+            '```',
+            '',
+            '</details>',
+            '',
+          ].join('\n');
+        }
+
+        function renderMarkdown() {
+          const lines = [
+            '## aimcp-lint Report',
+            '',
+            `**Result:** ${result}`,
+            '',
+            '| Metric | Value |',
+            '|--------|-------|',
+            `| Score | \`${score}/${maxScore}\` |`,
+            `| Threshold | \`${minScore}\` |`,
+            `| Violations | \`${summary.violation_count ?? violations.length}\` |`,
+            `| Errors | \`${summary.error_count ?? 0}\` |`,
+            `| Warnings | \`${summary.warning_count ?? 0}\` |`,
+            `| Info | \`${summary.info_count ?? 0}\` |`,
+            `| Server Command | \`${escapeMarkdown(serverCommand)}\` |`,
+            '',
+          ];
+
+          if (Object.keys(categories).length > 0) {
+            lines.push('### Category Subscores', '', '| Category | Score |', '|----------|-------|');
+            for (const [category, value] of Object.entries(categories)) {
+              lines.push(`| ${escapeMarkdown(category)} | \`${escapeMarkdown(value)}\` |`);
+            }
+            lines.push('');
+          }
+
+          if (violations.length > 0) {
+            lines.push('### Violations', '', '| Rule | Severity | Message |', '|------|----------|---------|');
+            for (const violation of violations.slice(0, 10)) {
+              lines.push(
+                `| ${escapeMarkdown(violation.rule_id ?? '')} | ${escapeMarkdown(
+                  violation.severity ?? '',
+                )} | ${escapeMarkdown(violation.message ?? '')} |`,
+              );
+            }
+            if (violations.length > 10) {
+              lines.push(`| ... | ... | ${violations.length - 10} more violations in JSON report |`);
+            }
+            lines.push('');
+          }
+
+          lines.push(
+            '<details><summary>JSON Report</summary>',
+            '',
+            '```json',
+            raw.trim(),
+            '```',
+            '',
+            '</details>',
+            '',
+          );
+
+          return lines.join('\n');
+        }
+
+        const body =
+          actionFormat === 'json'
+            ? renderJson()
+            : actionFormat === 'markdown'
+              ? renderMarkdown()
+              : renderTerminal();
+
+        fs.writeFileSync(summaryPath, body);
+        fs.writeFileSync(commentPath, `<!-- aimcp-lint-report -->\n${body}`);
+        NODE
+
+        cat "$AIMCP_SUMMARY_FILE" >> "$GITHUB_STEP_SUMMARY"
 
         if [ "$PASSED" != "true" ]; then
-          echo "::error::aimcp-lint score ${SCORE}/${MAX_SCORE} is below threshold (${{ inputs.min-score }})"
+          echo "::error::aimcp-lint score ${SCORE}/${MAX_SCORE} is below threshold ($AIMCP_MIN_SCORE)"
           exit 1
         fi
 
     - name: Post PR comment
-      if: ${{ inputs.post-comment == 'true' && github.event_name == 'pull_request' }}
+      if: ${{ always() && inputs.post-comment == 'true' && github.event_name == 'pull_request' && steps.lint.outputs.report_path != '' }}
       uses: actions/github-script@v7
+      env:
+        AIMCP_COMMENT_FILE: ${{ runner.temp }}/aimcp-lint-comment.md
       with:
         github-token: ${{ github.token }}
         script: |
           const fs = require('node:fs');
-          const path = require('node:path');
 
-          const jsonPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'aimcp-lint-result.json');
-          let report = { score: 0, max_score: 100, passed: false };
-          try {
-            report = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-          } catch {
-            // use defaults
-          }
-
-          const emoji = report.passed ? '✅' : '❌';
-          const body = [
-            `## ${emoji} aimcp-lint Report`,
-            '',
-            `| Metric | Value |`,
-            `|--------|-------|`,
-            `| Score | \`${report.score}/${report.max_score}\` |`,
-            `| Result | ${report.passed ? 'PASS' : 'FAIL'} |`,
-            '',
-            report.passed
-              ? 'All MCP lint checks passed. 🎉'
-              : `Lint threshold not met. Score ${report.score}/${report.max_score} is below the required minimum.`,
-          ].join('\n');
+          const marker = '<!-- aimcp-lint-report -->';
+          const body = fs.readFileSync(process.env.AIMCP_COMMENT_FILE, 'utf8');
 
           const { data: comments } = await github.rest.issues.listComments({
             issue_number: context.issue.number,
@@ -154,7 +254,7 @@ runs:
             repo: context.repo.repo,
           });
 
-          const botComment = comments.find(c => c.body?.includes('aimcp-lint Report'));
+          const botComment = comments.find(c => c.body?.includes(marker));
           if (botComment) {
             await github.rest.issues.updateComment({
               comment_id: botComment.id,

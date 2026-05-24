@@ -29,6 +29,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm -r --if-present test",
+    "test:pack:aimcp-lint": "node tools/phase25/aimcp-lint-pack-smoke.mjs",
+    "validate:action-template": "node tools/phase25/validate-aimcp-lint-action.mjs",
+    "validate:phase25": "pnpm test:pack:aimcp-lint && pnpm validate:action-template",
     "assets": "pnpm -F @sherpa-labs/asset-build build",
     "changeset": "changeset",
     "changeset:status": "changeset status --verbose",
@@ -48,7 +51,8 @@
     "lint-staged": "^15.5.2",
     "prettier": "^3.8.3",
     "typescript": "5.6.3",
-    "typescript-eslint": "^8.59.4"
+    "typescript-eslint": "^8.59.4",
+    "yaml": "^2.9.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
