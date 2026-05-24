@@ -31,6 +31,9 @@ execution contract.
 
 Published:
 
+- Package URL: <https://www.npmjs.com/package/@sherpa-labs/aimcp-lint>
+- Final version: `0.0.1`
+
 ```sh
 npm view @sherpa-labs/aimcp-lint version dist-tags.latest time.modified --json
 ```
@@ -64,20 +67,36 @@ npm view @sherpa-labs/aimcp-lint version dist-tags.latest --json
 
 ## GitHub Action Repository Status
 
-Not published as a standalone repository yet.
+Blocked by GitHub organization permissions.
+
+Action repo URL: blocked, <https://github.com/sherpa-labs/aimcp-lint-action>
+does not exist yet.
 
 Checked commands:
 
 ```sh
 gh repo view sherpa-labs/aimcp-lint-action
 gh repo view sherpa-labs-io/aimcp-lint-action
+gh api orgs/sherpa-labs/repos \
+  --method POST \
+  -f name=aimcp-lint-action \
+  -f private=false \
+  -f description="Run @sherpa-labs/aimcp-lint in GitHub Actions"
 ```
 
-Both returned "repository not found" for the current authenticated account.
-Creating or pushing the standalone action repository is intentionally blocked
-until explicit external-publish approval is given.
+Both repository lookups returned "repository not found" for the current
+authenticated account. The explicit external-publish approval was given on
+2026-05-25, but creating `sherpa-labs/aimcp-lint-action` failed with:
 
-Manual commands after approval:
+```text
+You need admin access to the organization before adding a repository to it. (HTTP 403)
+```
+
+The active GitHub account is `rudrasatani13`, which has access to
+`sherpa-labs-io` but not repository-create admin access in `sherpa-labs`.
+
+Manual commands after an admin grants repo-create access in `sherpa-labs`, or
+after switching to a token/account with that access:
 
 ```sh
 SHERPA_LABS=/Users/rudrasatani/Desktop/SherpaLabs
@@ -102,6 +121,8 @@ git push origin main --tags
 ## Sample Action Run Status
 
 Blocked until the standalone repository and `v1` tag exist.
+
+Sample action run URL: blocked, not available yet.
 
 Manual smoke-test commands after the action repository is published:
 
@@ -159,7 +180,10 @@ gh run watch <run-id> --exit-status
 
 ## Marketplace Status
 
-Not published to GitHub Marketplace yet.
+Blocked until `sherpa-labs/aimcp-lint-action` exists and has a public release
+containing `action.yml`.
+
+Marketplace listing URL: blocked, not available yet.
 
 Marketplace publishing requires a public standalone action repository and a
 release created from a tag that contains `action.yml`. After the repository is
@@ -179,9 +203,25 @@ the release.
 
 ## Remaining Blockers
 
-- Explicit approval is required before creating or pushing
+- GitHub org admin access is required before creating
   `sherpa-labs/aimcp-lint-action`.
 - The sample action workflow cannot be run against `sherpa-labs/aimcp-lint-action@v1`
   until the standalone repository and `v1` tag exist.
 - Marketplace publishing cannot be completed until the standalone repository has
   a public release with `action.yml`.
+
+## Latest Verification
+
+After the external create attempt was blocked, local verification was rerun on
+2026-05-25:
+
+```sh
+pnpm validate:phase25
+pnpm --filter @sherpa-labs/aimcp-lint test
+```
+
+Results:
+
+- `pnpm validate:phase25`: passed.
+- `pnpm --filter @sherpa-labs/aimcp-lint test`: passed on isolated rerun
+  (`122` tests passed).
