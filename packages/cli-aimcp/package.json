@@ -1,8 +1,7 @@
 {
-  "name": "@sherpa-labs/cli-aimcp",
+  "name": "@sherpa-labs/aimcp-lint",
   "version": "0.0.0",
-  "private": true,
-  "description": "aimcp-lint — open-source MCP linter CLI (Phase 20+).",
+  "description": "MCP lint CLI for validating Model Context Protocol servers.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,19 +11,34 @@
   "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/cli-aimcp#readme",
   "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
-  "bin": {
-    "aimcp-lint": "./dist/cli.js"
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
+  "bin": {
+    "aimcp-lint": "./dist/index.js"
+  },
+  "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "build": "tsup && tsc --build --force",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "pnpm build && vitest run"
+  },
+  "dependencies": {
+    "commander": "^13.1.0"
   },
   "devDependencies": {
     "@sherpa-labs/shared-config": "workspace:*",
-    "@sherpa-labs/shared-types": "workspace:*",
-    "@sherpa-labs/core-mcp": "workspace:*"
+    "@types/node": "^25.9.1",
+    "tsup": "^8.0.0",
+    "vitest": "^4.1.7"
   }
 }
