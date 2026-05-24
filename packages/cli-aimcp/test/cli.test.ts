@@ -231,7 +231,8 @@ describe('aimcp-lint lint command', () => {
 
     expect(result.code).toBe(2);
     expect(result.stdout).toBe('');
-    expect(result.stderr).toContain(`Malformed ${CONFIG_FILE_NAME}`);
+    expect(result.stderr).toContain(`Malformed`);
+    expect(result.stderr).toContain(CONFIG_FILE_NAME);
   });
 
   it('suppresses normal terminal report details with --quiet', async () => {
@@ -685,7 +686,540 @@ describe('aimcp-lint NO_COLOR behavior', () => {
   });
 });
 
-// Helper: run CLI with TTY-like env (isTTY=1, no FORCE_COLOR override)
+// Phase 23: Configuration System Tests
+
+describe('aimcp-lint config discovery', () => {
+  it('walks up directory tree from nested cwd', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-discover-'));
+    const nested = join(cwd, 'deep', 'nested');
+    await mkdirP(nested);
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ format: 'markdown' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], nested);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain('## MCP Lint Report');
+    expect(result.stderr).toBe('');
+  });
+
+  it('stops at filesystem root when no config exists', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-noconfig-'));
+    const deep = await mkdtemp(join(cwd, 'deep-'));
+    const nested = join(deep, 'more');
+    await mkdirP(nested);
+
+    const result = await runCli(
+      ['--format', 'json', '--quiet', '--', ...serverArgs('healthy.mjs')],
+      nested,
+    );
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe('');
+    const report = JSON.parse(result.stdout) as { score: number };
+    expect(typeof report.score).toBe('number');
+  });
+
+  it('uses explicit --config path', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-explicit-'));
+    const configDir = join(cwd, 'config-dir');
+    await mkdirP(configDir);
+    await writeFile(
+      join(configDir, CONFIG_FILE_NAME),
+      JSON.stringify({ format: 'json', quiet: true }),
+      'utf8',
+    );
+
+    const result = await runCli(
+      ['--config', join(configDir, CONFIG_FILE_NAME), '--', ...serverArgs('healthy.mjs')],
+      cwd,
+    );
+
+    expect(result.code).toBe(0);
+    const report = JSON.parse(result.stdout) as { score: number };
+    expect(typeof report.score).toBe('number');
+  });
+
+  it('errors clearly on explicit --config path that does not exist', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-missing-'));
+    const missing = join(cwd, 'no-such-config.json');
+
+    const result = await runCli(['--config', missing, '--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('Config file not found');
+    expect(result.stderr).toContain(missing);
+  });
+});
+
+describe('aimcp-lint config validation', () => {
+  it('rejects invalid format values', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-format-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ format: 'xml' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('format must be terminal, json, or markdown');
+  });
+
+  it('rejects non-number failUnder', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-fail-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ failUnder: '50' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('failUnder must be a non-negative finite number');
+  });
+
+  it('rejects negative failUnder', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-neg-fail-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ failUnder: -1 }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('failUnder must be a non-negative finite number');
+  });
+
+  it('rejects non-array ignore', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-ignore-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ ignore: 'X004' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('must be an array of strings');
+  });
+
+  it('rejects invalid severityOverrides value', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-sev-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ severityOverrides: { P001: 'critical' } }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('severityOverrides.P001 must be error, warning, or info');
+  });
+
+  it('rejects non-object severityOverrides', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-sev-obj-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ severityOverrides: ['P001'] }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('severityOverrides must be an object mapping rule IDs');
+  });
+
+  it('rejects invalid command shape', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-cmd-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ command: 123 }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain(
+      'command must be a non-empty string or a non-empty array of strings',
+    );
+  });
+
+  it('rejects empty string command', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-empty-cmd-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ command: '   ' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain(
+      'command must be a non-empty string or a non-empty array of strings',
+    );
+  });
+
+  it('rejects non-object thresholds', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-thresh-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ thresholds: 'high' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('thresholds must be an object of numbers');
+  });
+
+  it('rejects invalid threshold value', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-thresh-val-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ thresholds: { maxTools: -5 } }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('thresholds.maxTools must be a non-negative finite number');
+  });
+
+  it('rejects malformed ruleOverrides', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-rule-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ ruleOverrides: { P001: 'disabled' } }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('ruleOverrides.P001 must be an object');
+  });
+
+  it('rejects invalid severityWeights keys', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-weight-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ severityWeights: { critical: -99 } }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('severityWeights.critical is not a valid key');
+  });
+
+  it('rejects non-object config file', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-bad-type-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify(['not', 'an', 'object']), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('must contain a JSON object');
+  });
+});
+
+describe('aimcp-lint config init expanded', () => {
+  it('generates a config with all Phase 23 fields', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-init-full-'));
+    await runCli(['init'], cwd);
+    const configContent = await readFile(join(cwd, CONFIG_FILE_NAME), 'utf8');
+    const config = JSON.parse(configContent) as Record<string, unknown>;
+
+    expect(config.command).toBe('node ./server.mjs');
+    expect(config.format).toBe('terminal');
+    expect(config.failUnder).toBe(80);
+    expect(config.ignore).toEqual([]);
+    expect(config.only).toEqual([]);
+    expect(config.detailed).toBe(false);
+    expect(config.quiet).toBe(false);
+    expect(config.verbose).toBe(false);
+    expect(config.severityOverrides).toEqual({});
+    expect(config.ruleOverrides).toEqual({});
+    expect(config.thresholds).toEqual({});
+    expect(config.severityWeights).toEqual({});
+    expect(config.watch).toEqual({ paths: ['.'] });
+  });
+
+  it('custom config respected on subsequent runs', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-custom-respected-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({
+        format: 'json',
+        ignore: ['X003', 'X004'],
+      }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      violations: readonly { rule_id: string }[];
+      metadata: { rules_run: readonly string[] };
+    };
+
+    expect(result.code).toBe(0);
+    expect(report.violations.some((v) => v.rule_id === 'X004')).toBe(false);
+    expect(report.metadata.rules_run).not.toContain('X004');
+  });
+});
+
+describe('aimcp-lint config command handling', () => {
+  it('uses config command when no CLI command is provided', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-config-cmd-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({
+        command: ['node', fixturePath('healthy.mjs')],
+        format: 'json',
+        quiet: true,
+      }),
+      'utf8',
+    );
+
+    const result = await runCli([], cwd);
+    const report = JSON.parse(result.stdout) as { score: number };
+
+    expect(result.code).toBe(0);
+    expect(typeof report.score).toBe('number');
+  });
+
+  it('uses config command string form', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-config-cmd-str-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({
+        command: `node ${fixturePath('healthy.mjs')}`,
+        format: 'json',
+        quiet: true,
+      }),
+      'utf8',
+    );
+
+    const result = await runCli([], cwd);
+    const report = JSON.parse(result.stdout) as { score: number };
+
+    expect(result.code).toBe(0);
+    expect(typeof report.score).toBe('number');
+  });
+
+  it('CLI command overrides config command', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-cli-overrides-cmd-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({
+        command: 'echo wrong-server',
+        format: 'json',
+        quiet: true,
+      }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as { score: number };
+
+    expect(result.code).toBe(0);
+    expect(typeof report.score).toBe('number');
+  });
+
+  it('shows help when neither CLI nor config command exists', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-no-cmd-'));
+    const result = await runCli([], cwd);
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Usage:');
+  });
+});
+
+describe('aimcp-lint ignore/only from config', () => {
+  it('ignore from config affects rule execution', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-config-ignore-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ ignore: ['X004'], format: 'json' }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      violations: readonly { rule_id: string }[];
+    };
+
+    expect(report.violations.some((v) => v.rule_id === 'X004')).toBe(false);
+  });
+
+  it('--ignore CLi flag replaces config ignore', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-cli-ignore-replaces-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ ignore: ['X004'], format: 'json' }),
+      'utf8',
+    );
+
+    const result = await runCli(['--ignore', 'X003', '--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      violations: readonly { rule_id: string }[];
+      metadata: { rules_run: readonly string[] };
+    };
+
+    expect(report.violations.some((v) => v.rule_id === 'X003')).toBe(false);
+    expect(report.violations.some((v) => v.rule_id === 'X004')).toBe(true);
+  });
+
+  it('--only CLi flag overrides config and clears ignores', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-cli-only-overrides-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ ignore: ['X001', 'X002'], only: ['X004'], format: 'json' }),
+      'utf8',
+    );
+
+    const result = await runCli(['--only', 'X003', '--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      metadata: { rules_run: readonly string[] };
+    };
+
+    expect(report.metadata.rules_run).toEqual(['X003']);
+  });
+});
+
+describe('aimcp-lint severity overrides from config', () => {
+  it('severity overrides affect violation severity in output', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-sev-override-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({
+        severityOverrides: { X004: 'info' },
+        format: 'json',
+        only: ['X004'],
+      }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      violations: readonly { rule_id: string; severity: string }[];
+    };
+
+    for (const violation of report.violations) {
+      expect(violation.rule_id).toBe('X004');
+      expect(violation.severity).toBe('info');
+    }
+  });
+});
+
+describe('aimcp-lint thresholds from config', () => {
+  it('thresholds from config are passed through', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-thresh-cfg-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({
+        thresholds: { maxTools: 5, maxResources: 5 },
+        format: 'json',
+        quiet: true,
+      }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as { score: number };
+
+    expect(result.code).toBe(0);
+    expect(typeof report.score).toBe('number');
+  });
+});
+
+describe('aimcp-lint partial config', () => {
+  it('applies defaults for missing fields', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-partial-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ format: 'json' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(0);
+    const json = JSON.parse(result.stdout) as { schema_version: string };
+    expect(json.schema_version).toBe('1.0.0');
+    expect(result.stderr).toBe('');
+  });
+});
+
+describe('aimcp-lint quiet/verbose from config', () => {
+  it('quiet from config suppresses terminal detail', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-config-quiet-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ quiet: true }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).not.toContain('Category Subscores');
+    expect(result.stdout).not.toContain('Violations');
+  });
+
+  it('verbose from config writes diagnostics', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-config-verbose-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ verbose: true }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.stderr).toContain('[aimcp-lint]');
+  });
+
+  it('CLI --verbose flag overrides config verbose', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-verbose-override-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ verbose: false }), 'utf8');
+
+    const result = await runCli(['--verbose', '--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.stderr).toContain('[aimcp-lint]');
+  });
+});
+
+describe('aimcp-lint backwards compatibility', () => {
+  it('old config without new fields still works', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-old-config-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ format: 'json', ignore: ['X004'] }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      violations: readonly { rule_id: string }[];
+    };
+
+    expect(result.code).toBe(0);
+    expect(report.violations.some((v) => v.rule_id === 'X004')).toBe(false);
+  });
+
+  it('ignoredRules legacy key still works', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-legacy-ignore-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ ignoredRules: ['X004'], format: 'json' }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      violations: readonly { rule_id: string }[];
+    };
+
+    expect(report.violations.some((v) => v.rule_id === 'X004')).toBe(false);
+  });
+
+  it('includedRules legacy key still works', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-legacy-include-'));
+    await writeFile(
+      join(cwd, CONFIG_FILE_NAME),
+      JSON.stringify({ includedRules: ['X004'], format: 'json' }),
+      'utf8',
+    );
+
+    const result = await runCli(['--', ...serverArgs('violating.mjs')], cwd);
+    const report = JSON.parse(result.stdout) as {
+      metadata: { rules_run: readonly string[] };
+    };
+
+    expect(report.metadata.rules_run).toEqual(['X004']);
+  });
+});
+
+// Helper: mkdir -p equivalent
+import { mkdir } from 'node:fs/promises';
+
+async function mkdirP(path: string): Promise<void> {
+  await mkdir(path, { recursive: true });
+}
 async function runCliTty(
   args: readonly string[],
   forceEnv = true,

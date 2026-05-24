@@ -5,6 +5,7 @@ import type { Command } from 'commander/esm.mjs';
 
 import { shouldEnableColor } from '../color.js';
 import { type CommonFlagInput, outputFormats } from '../config.js';
+import { usageError } from '../errors.js';
 import { EXIT_LINT_FAILED, EXIT_SUCCESS, type ExitCode } from '../exit-codes.js';
 import { collectStdioLintContext, runLintEngine } from '../lint-runner.js';
 import { renderLintOutput, type WritableStreamLike } from '../output.js';
@@ -16,6 +17,7 @@ import { createVerboseLogger } from '../verbose.js';
 export interface LintCommandInput {
   readonly serverCommandTokens: readonly string[] | undefined;
   readonly options: CommonFlagInput;
+  readonly commandTokens?: readonly string[];
   readonly cwd?: string;
   readonly stdout?: WritableStreamLike;
   readonly stderr?: WritableStreamLike;
@@ -46,8 +48,25 @@ export async function runLintCommand(input: LintCommandInput): Promise<ExitCode>
   const cwd = input.cwd ?? process.cwd();
   const stdout = input.stdout ?? process.stdout;
   const stderr = input.stderr ?? process.stderr;
-  const serverCommand = parseServerCommand(input.serverCommandTokens);
   const resolvedConfig = await resolveCliConfig({ cwd, options: input.options });
+  const cliTokens =
+    (input.serverCommandTokens ?? []).length > 0 ? input.serverCommandTokens : undefined;
+  const configTokens = resolvedConfig.commandTokens;
+  const effectiveTokens = cliTokens ?? configTokens;
+
+  if (effectiveTokens === undefined || effectiveTokens.length === 0) {
+    if (cliTokens === undefined && configTokens === undefined) {
+      throw usageError(
+        'No MCP server command provided. Pass one on the command line or set "command" in .aimcp-lint.json.',
+      );
+    }
+
+    throw usageError(
+      `MCP server command resolved to empty list. Check the "command" field in ${resolvedConfig.configPath}.`,
+    );
+  }
+
+  const serverCommand = parseServerCommand(effectiveTokens);
   const verbose = createVerboseLogger(resolvedConfig.verbose, stderr);
 
   verbose.step(

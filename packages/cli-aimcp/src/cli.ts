@@ -7,6 +7,7 @@ import { addCommonLintOptions, runLintCommand } from './commands/lint.js';
 import { createRulesCommand } from './commands/rules.js';
 import { createWatchCommand } from './commands/watch.js';
 import type { CommonFlagInput } from './config.js';
+import { resolveCliConfig } from './config.js';
 import { errorExitCode } from './errors.js';
 import { writeCliError } from './output.js';
 import { packageVersion } from './version.js';
@@ -35,12 +36,27 @@ export function createCli(): Command {
     .argument('[serverCommand...]', 'target MCP server command and arguments')
     .addHelpText('after', examples)
     .action(async (serverCommandTokens: string[] | undefined, options: CommonFlagInput) => {
-      if ((serverCommandTokens ?? []).length === 0) {
-        program.outputHelp();
-        return;
+      const effectiveTokens: readonly string[] | undefined =
+        serverCommandTokens !== undefined && serverCommandTokens.length > 0
+          ? serverCommandTokens
+          : undefined;
+
+      if (effectiveTokens === undefined) {
+        const resolvedConfig = await resolveCliConfig({
+          cwd: process.cwd(),
+          options,
+        });
+
+        if (
+          resolvedConfig.commandTokens === undefined ||
+          resolvedConfig.commandTokens.length === 0
+        ) {
+          program.outputHelp();
+          return;
+        }
       }
 
-      process.exitCode = await runLintCommand({ serverCommandTokens, options });
+      process.exitCode = await runLintCommand({ serverCommandTokens: effectiveTokens, options });
     });
 
   program.addCommand(createWatchCommand());
