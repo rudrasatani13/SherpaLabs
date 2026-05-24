@@ -33,6 +33,7 @@
     "test": "pnpm build && vitest run"
   },
   "dependencies": {
+    "@sherpa-labs/core-mcp": "workspace:*",
     "commander": "^13.1.0"
   },
   "devDependencies": {

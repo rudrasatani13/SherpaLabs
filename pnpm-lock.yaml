@@ -71,6 +71,9 @@ importers:
 
   packages/cli-aimcp:
     dependencies:
+      '@sherpa-labs/core-mcp':
+        specifier: workspace:*
+        version: link:../core-mcp
       commander:
         specifier: ^13.1.0
         version: 13.1.0
