@@ -10,6 +10,7 @@ export interface ProtocolLogEntry {
   readonly id?: string | number;
   readonly method?: string;
   readonly message: LogValue;
+  readonly transport?: LogValue;
 }
 
 export interface ProtocolMessageLoggerOptions {
@@ -22,6 +23,7 @@ export interface ProtocolMessageLogger {
   log(
     direction: ProtocolMessageDirection,
     message: JsonRpcInboundMessage | JsonRpcOutboundMessage,
+    transport?: JsonObject,
   ): void;
 }
 
@@ -34,18 +36,19 @@ export function createProtocolMessageLogger(
     (verbose && options.onProtocolMessage == null ? createLogger({ level: 'debug' }) : undefined);
 
   return {
-    log: (direction, message) => {
+    log: (direction, message, transport) => {
       if (!verbose) {
         return;
       }
 
-      const entry = createProtocolLogEntry(direction, message);
+      const entry = createProtocolLogEntry(direction, message, transport);
       options.onProtocolMessage?.(entry);
       logger?.debug('mcp protocol message', {
         direction: entry.direction,
         id: entry.id ?? null,
         method: entry.method ?? null,
         message: entry.message,
+        transport: entry.transport ?? null,
       });
     },
   };
@@ -79,6 +82,7 @@ export function redactJsonValue(value: JsonValue): LogValue {
 function createProtocolLogEntry(
   direction: ProtocolMessageDirection,
   message: JsonRpcInboundMessage | JsonRpcOutboundMessage,
+  transport: JsonObject | undefined,
 ): ProtocolLogEntry {
   const redactedMessage = redactJsonValue(message as unknown as JsonObject);
   const id = 'id' in message ? message.id : undefined;
@@ -89,10 +93,15 @@ function createProtocolLogEntry(
     message: LogValue;
     id?: string | number;
     method?: string;
+    transport?: LogValue;
   } = {
     direction,
     message: redactedMessage,
   };
+
+  if (transport != null) {
+    entry.transport = redactJsonValue(transport);
+  }
 
   if (id != null) {
     entry.id = id;
@@ -112,6 +121,7 @@ function isSecretField(key: string): boolean {
     normalized.includes('token') ||
     normalized.includes('authorization') ||
     normalized.includes('apikey') ||
+    normalized.includes('cookie') ||
     normalized.includes('password') ||
     normalized.includes('secret')
   );

@@ -22,6 +22,7 @@ import {
   type JsonRpcId,
   type JsonRpcParams,
 } from './json-rpc.js';
+import type { McpClient } from './McpClient.js';
 import { createProtocolMessageLogger, type ProtocolMessageLogger } from './message-log.js';
 import {
   defaultInitializeTimeoutMs,
@@ -46,7 +47,7 @@ interface PendingRequest {
 const stderrTailLimit = 8_192;
 const disconnectGraceMs = 500;
 
-export class StdioClient {
+export class StdioClient implements McpClient<StdioRequestOptions> {
   readonly command: string;
   readonly args: readonly string[];
   readonly cwd: string | undefined;
