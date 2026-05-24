@@ -1214,6 +1214,309 @@ describe('aimcp-lint backwards compatibility', () => {
   });
 });
 
+// Phase 24: CI Integration Features
+
+describe('aimcp-lint stable exit codes', () => {
+  it('returns exit code 1 when score is below --fail-under threshold', async () => {
+    const result = await runCli(['--fail-under', '101', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain('Score:');
+  });
+
+  it('returns exit code 0 when score meets --fail-under threshold', async () => {
+    const result = await runCli(['--fail-under', '0', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain('Score:');
+  });
+
+  it('returns exit code 0 when score equals --fail-under threshold', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+    const report = JSON.parse(result.stdout) as { score: number };
+    const thresholdResult = await runCli([
+      '--fail-under',
+      String(report.score),
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(thresholdResult.code).toBe(0);
+  });
+
+  it('returns exit code 1 when score is one below threshold', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+    const report = JSON.parse(result.stdout) as { score: number };
+    const thresholdResult = await runCli([
+      '--fail-under',
+      String(report.score + 1),
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(thresholdResult.code).toBe(1);
+  });
+
+  it('--fail-under flag overrides config file failUnder', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-fail-override-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ failUnder: 101 }), 'utf8');
+
+    const result = await runCli(['--fail-under', '0', '--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(0);
+  });
+
+  it('returns exit code 2 for invalid config', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-exit2-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), '{not-json', 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('Malformed');
+  });
+
+  it('returns exit code 3 for non-existent server command', async () => {
+    const result = await runCli(['--', process.execPath, './does-not-exist.mjs']);
+
+    expect(result.code).toBe(3);
+    expect(result.stderr).toMatch(/process exited|Failed to spawn|ENOENT|connection/i);
+  });
+
+  it('returns exit code 3 for crashing server', async () => {
+    const result = await runCli(serverArgs('crash.mjs'));
+
+    expect(result.code).toBe(3);
+    expect(result.stderr).toMatch(/process exited|connection/i);
+  });
+
+  it('returns exit code 3 for malformed server output', async () => {
+    const result = await runCli(serverArgs('malformed.mjs'));
+
+    expect(result.code).toBe(3);
+    expect(result.stderr).toMatch(/Malformed|JSON|connection/i);
+  });
+
+  it('returns exit code 2 for usage error (empty command string in config)', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-usage-err-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ command: '   ' }), 'utf8');
+
+    const result = await runCli([], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('command must be a non-empty string');
+  });
+});
+
+describe('aimcp-lint --format=json --quiet CI output', () => {
+  it('outputs minimal parseable JSON on stdout', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(result.code).toBe(0);
+    const report = JSON.parse(result.stdout) as Record<string, unknown>;
+
+    expect(report).toHaveProperty('score');
+    expect(report).toHaveProperty('max_score');
+    expect(report).toHaveProperty('passed');
+    expect(typeof report.score).toBe('number');
+    expect(typeof report.max_score).toBe('number');
+    expect(typeof report.passed).toBe('boolean');
+    expect(Object.keys(report).length).toBe(3);
+  });
+
+  it('contains no ANSI codes in JSON quiet stdout', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+    // Verify no spinner noise leaked
+    expect(result.stdout).not.toContain('Connecting');
+    expect(result.stdout).not.toContain('OK');
+  });
+
+  it('works with jq-style parsing on the command line', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+    const report = JSON.parse(result.stdout) as {
+      score: number;
+      max_score: number;
+      passed: boolean;
+    };
+
+    expect(report.score).toBeLessThanOrEqual(report.max_score);
+    expect([true, false]).toContain(report.passed);
+  });
+
+  it('JSON with --verbose sends diagnostics to stderr and stdout remains parseable', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--verbose',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    const report = JSON.parse(result.stdout) as { score: number };
+
+    expect(typeof report.score).toBe('number');
+    expect(result.stderr).toContain('[aimcp-lint]');
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+
+  it('JSON quiet with --verbose has no ANSI in stdout', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--verbose',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+});
+
+describe('aimcp-lint grep-friendly terminal output', () => {
+  it('prints PASS or FAIL line grep-able', async () => {
+    const result = await runCli(serverArgs('healthy.mjs'));
+
+    expect(result.stdout).toMatch(/PASS|FAIL/);
+    expect(result.stdout).toContain('Score:');
+  });
+
+  it('contains score line with digit pattern', async () => {
+    const result = await runCli(serverArgs('healthy.mjs'));
+
+    expect(result.stdout).toMatch(/Score:\s*\d+\/\d+/u);
+  });
+
+  it('contains category subscores table', async () => {
+    const result = await runCli(serverArgs('healthy.mjs'));
+
+    expect(result.stdout).toContain('Category Subscores');
+    expect(result.stdout).toContain('Protocol');
+    expect(result.stdout).toContain('Schema');
+    expect(result.stdout).toContain('Security');
+    expect(result.stdout).toContain('Performance');
+  });
+
+  it('contains summary table with metric names', async () => {
+    const result = await runCli(serverArgs('healthy.mjs'));
+
+    expect(result.stdout).toContain('Summary');
+    expect(result.stdout).toContain('Total Errors');
+    expect(result.stdout).toContain('Total Violations');
+    expect(result.stdout).toContain('Result');
+    expect(result.stdout).toContain('Rules Run');
+  });
+
+  it('quiet terminal output is grep-able for PASS/FAIL', async () => {
+    const result = await runCli(['--quiet', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.stdout.trim()).toMatch(/^(PASS|FAIL) \d+\/100$/u);
+  });
+});
+
+describe('aimcp-lint Markdown CI determinism', () => {
+  it('produces consistent output across runs', async () => {
+    const first = await runCli(['--format', 'markdown', '--', ...serverArgs('healthy.mjs')]);
+    const second = await runCli(['--format', 'markdown', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(first.stdout).toBe(second.stdout);
+  });
+
+  it('includes report heading and server info table', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.stdout).toContain('## MCP Lint Report');
+    expect(result.stdout).toContain('### Server Info');
+    expect(result.stdout).toContain('| Property | Value |');
+  });
+
+  it('markdown quiet output is deterministic', async () => {
+    const first = await runCli([
+      '--format',
+      'markdown',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+    const second = await runCli([
+      '--format',
+      'markdown',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(first.stdout.trim()).toBe(second.stdout.trim());
+  });
+
+  it('has no ANSI color codes in markdown output', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+});
+
+describe('aimcp-lint CI sample-server timing', () => {
+  it('completes a CI-style run against the local sample server in under 60 seconds', async () => {
+    const started = Date.now();
+    const result = await runCliLongTimeout(
+      ['--format', 'json', '--quiet', '--', ...serverArgs('healthy.mjs')],
+      120_000,
+    );
+    const durationMs = Date.now() - started;
+
+    expect(result.code).toBe(0);
+    expect(durationMs).toBeLessThan(60_000);
+    const report = JSON.parse(result.stdout) as { score: number; passed: boolean };
+    expect(typeof report.score).toBe('number');
+  }, 120_000);
+
+  it('completes CI-style run against violating server in under 60 seconds', async () => {
+    const started = Date.now();
+    const result = await runCliLongTimeout(
+      ['--format', 'json', '--quiet', '--', ...serverArgs('violating.mjs')],
+      120_000,
+    );
+    const durationMs = Date.now() - started;
+
+    expect(durationMs).toBeLessThan(60_000);
+    const report = JSON.parse(result.stdout) as { score: number; passed: boolean };
+    expect(typeof report.score).toBe('number');
+  }, 120_000);
+});
+
 // Helper: mkdir -p equivalent
 import { mkdir } from 'node:fs/promises';
 
@@ -1276,6 +1579,45 @@ async function runCliWithEnv(
       child.kill('SIGKILL');
       rejectPromise(new Error(`CLI timed out: ${args.join(' ')}`));
     }, 10_000);
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout.push(chunk);
+    });
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderr.push(chunk);
+    });
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      rejectPromise(error);
+    });
+    child.on('close', (code) => {
+      clearTimeout(timeout);
+      resolvePromise({
+        code,
+        stdout: Buffer.concat(stdout).toString('utf8'),
+        stderr: Buffer.concat(stderr).toString('utf8'),
+      });
+    });
+  });
+}
+
+async function runCliLongTimeout(
+  args: readonly string[],
+  timeoutMs: number,
+  cwd?: string,
+): Promise<CliResult> {
+  return await new Promise<CliResult>((resolvePromise, rejectPromise) => {
+    const child = spawn(process.execPath, [binaryPath, ...args], {
+      cwd: cwd ?? packageRoot,
+      env: { ...process.env, FORCE_COLOR: '0' },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const timeout = setTimeout(() => {
+      child.kill('SIGKILL');
+      rejectPromise(new Error(`CLI timed out: ${args.join(' ')}`));
+    }, timeoutMs);
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
 

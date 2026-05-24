@@ -3,9 +3,11 @@ import process from 'node:process';
 import { InvalidArgumentError, Option } from 'commander/esm.mjs';
 import type { Command } from 'commander/esm.mjs';
 
+import { McpClientError } from '@sherpa-labs/core-mcp';
+
 import { shouldEnableColor } from '../color.js';
 import { type CommonFlagInput, outputFormats } from '../config.js';
-import { usageError } from '../errors.js';
+import { serverError, usageError } from '../errors.js';
 import { EXIT_LINT_FAILED, EXIT_SUCCESS, type ExitCode } from '../exit-codes.js';
 import { collectStdioLintContext, runLintEngine } from '../lint-runner.js';
 import { renderLintOutput, type WritableStreamLike } from '../output.js';
@@ -87,22 +89,30 @@ export async function runLintCommand(input: LintCommandInput): Promise<ExitCode>
   });
 
   verbose.step('Connecting to MCP server');
-  const context = await spinner.run('Connecting to MCP server', async () =>
-    collectStdioLintContext({
-      serverCommand,
-      cwd,
-      config: resolvedConfig.lintConfig,
-      verbose: resolvedConfig.verbose,
-      stderr,
-      ...(resolvedConfig.verbose
-        ? {
-            diagnostics: (message: string) => {
-              verbose.step(message);
-            },
-          }
-        : {}),
-    }),
-  );
+  let context;
+  try {
+    context = await spinner.run('Connecting to MCP server', async () =>
+      collectStdioLintContext({
+        serverCommand,
+        cwd,
+        config: resolvedConfig.lintConfig,
+        verbose: resolvedConfig.verbose,
+        stderr,
+        ...(resolvedConfig.verbose
+          ? {
+              diagnostics: (message: string) => {
+                verbose.step(message);
+              },
+            }
+          : {}),
+      }),
+    );
+  } catch (error) {
+    if (error instanceof McpClientError) {
+      throw serverError(error.message);
+    }
+    throw error;
+  }
 
   verbose.step(
     `Collected ${context.tools?.length ?? 0} tools, ${context.resources?.length ?? 0} resources, ${context.prompts?.length ?? 0} prompts`,

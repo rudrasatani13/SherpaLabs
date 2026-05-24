@@ -5,8 +5,8 @@ import process from 'node:process';
 import { Command } from 'commander/esm.mjs';
 
 import { type CommonFlagInput, resolveCliConfig } from '../config.js';
-import { describeError } from '../errors.js';
-import { EXIT_RUNTIME_ERROR, EXIT_SUCCESS, type ExitCode } from '../exit-codes.js';
+import { describeError, errorExitCode } from '../errors.js';
+import { EXIT_SUCCESS, type ExitCode } from '../exit-codes.js';
 import type { WritableStreamLike } from '../output.js';
 import { parseServerCommand } from '../server-command.js';
 import { addCommonLintOptions, runLintCommand } from './lint.js';
@@ -85,7 +85,7 @@ export async function runWatchCommand(input: WatchCommandInput): Promise<ExitCod
         });
       } catch (error) {
         stderr.write(`Error: ${describeError(error)}\n`);
-        return EXIT_RUNTIME_ERROR;
+        return errorExitCode(error);
       }
     },
   });
