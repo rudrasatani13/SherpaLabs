@@ -25,10 +25,16 @@
   ],
   "scripts": {
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sherpa-labs/core-utils": "workspace:*",
+    "@sherpa-labs/shared-types": "workspace:*"
   },
   "devDependencies": {
     "@sherpa-labs/shared-config": "workspace:*",
-    "@sherpa-labs/shared-types": "workspace:*"
+    "@types/node": "^25.9.1",
+    "vitest": "^4.1.7"
   }
 }
