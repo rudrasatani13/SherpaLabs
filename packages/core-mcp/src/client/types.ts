@@ -1,12 +1,45 @@
 import type { Logger } from '@sherpa-labs/core-utils/logger';
 import type { JsonObject, McpToolInfo } from '@sherpa-labs/shared-types';
+import type { ReadableStream } from 'node:stream/web';
 
 import type { JsonRpcParams } from './json-rpc.js';
 import type { ProtocolLogEntry } from './message-log.js';
 
 export const defaultMcpProtocolVersion = '2025-11-25';
+export const defaultConnectTimeoutMs = 5_000;
 export const defaultInitializeTimeoutMs = 5_000;
 export const defaultRequestTimeoutMs = 10_000;
+export const defaultReconnectMaxAttempts = 3;
+export const defaultReconnectInitialDelayMs = 100;
+
+export interface FetchResponseHeadersLike {
+  get(name: string): string | null;
+}
+
+export interface FetchResponseLike {
+  readonly ok: boolean;
+  readonly status: number;
+  readonly statusText: string;
+  readonly headers: FetchResponseHeadersLike;
+  readonly body: ReadableStream<Uint8Array> | null;
+  text(): Promise<string>;
+}
+
+export interface FetchRequestOptions {
+  readonly method?: string;
+  readonly headers?: Readonly<Record<string, string>>;
+  readonly body?: string;
+  readonly signal?: AbortSignal;
+}
+
+export type FetchLike = (
+  input: string | URL,
+  init?: FetchRequestOptions,
+) => Promise<FetchResponseLike>;
+
+export interface McpRequestOptions {
+  readonly timeoutMs?: number;
+}
 
 export interface StdioClientOptions {
   readonly command: string;
@@ -20,9 +53,24 @@ export interface StdioClientOptions {
   readonly onProtocolMessage?: (entry: ProtocolLogEntry) => void;
 }
 
-export interface StdioRequestOptions {
-  readonly timeoutMs?: number;
+export type StdioRequestOptions = McpRequestOptions;
+
+export interface SseClientOptions {
+  readonly url: string | URL;
+  readonly headers?: Readonly<Record<string, string>>;
+  readonly fetch?: FetchLike;
+  readonly connectTimeoutMs?: number;
+  readonly initializeTimeoutMs?: number;
+  readonly requestTimeoutMs?: number;
+  readonly reconnect?: boolean;
+  readonly reconnectMaxAttempts?: number;
+  readonly reconnectInitialDelayMs?: number;
+  readonly verbose?: boolean;
+  readonly logger?: Logger;
+  readonly onProtocolMessage?: (entry: ProtocolLogEntry) => void;
 }
+
+export type SseRequestOptions = McpRequestOptions;
 
 export interface McpImplementationInfo extends JsonObject {
   readonly name: string;
