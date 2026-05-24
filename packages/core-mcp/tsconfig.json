@@ -2,8 +2,10 @@
   "extends": "@sherpa-labs/shared-config/tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "lib": ["ES2022"],
+    "types": ["node"]
   },
   "include": ["src/**/*"],
-  "references": [{ "path": "../shared-types" }]
+  "references": [{ "path": "../shared-types" }, { "path": "../core-utils" }]
 }

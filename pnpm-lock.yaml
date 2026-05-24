@@ -94,13 +94,23 @@ importers:
         version: link:../shared-types
 
   packages/core-mcp:
+    dependencies:
+      '@sherpa-labs/core-utils':
+        specifier: workspace:*
+        version: link:../core-utils
+      '@sherpa-labs/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
     devDependencies:
       '@sherpa-labs/shared-config':
         specifier: workspace:*
         version: link:../shared-config
-      '@sherpa-labs/shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
+      '@types/node':
+        specifier: ^25.9.1
+        version: 25.9.1
+      vitest:
+        specifier: ^4.1.7
+        version: 4.1.7(@types/node@25.9.1)(vite@8.0.14(@types/node@25.9.1)(yaml@2.9.0))
 
   packages/core-rules:
     dependencies:
