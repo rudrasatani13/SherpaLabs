@@ -24,7 +24,7 @@ in place so future-you can re-run them.
 | # | Step                          | Status                | Evidence in section |
 | - | ----------------------------- | --------------------- | ------------------- |
 | 1 | npm scope `@sherpa-labs`      | ✅ Done — reserved via @sherpa-labs/claim | §1 |
-| 2 | GitHub org `sherpa-labs-io`   | ✅ Done — repo transferred from rudrasatani13/SherpaLabs to sherpa-labs-io/SherpaLabs on 2026-05-23 | §2 |
+| 2 | GitHub org `rudrasatani13`   | ✅ Done — repo transferred from rudrasatani13/SherpaLabs to rudrasatani13/SherpaLabs on 2026-05-23 | §2 |
 | 3 | Domain `sherpalabs.cloud`     | ✅ Done — resolves and redirects to GitHub | §3 |
 | 4 | Cloudflare Email Routing      | ✅ Done — MX/SPF active, catch-all forwarded to Gmail | §4 |
 | 5 | Paddle account + KYC          | 🚫 **Blocked** — signed up + welcome email + sandbox dashboard accessible, **KYC documents not yet uploaded** | §5 |
@@ -92,20 +92,20 @@ npm view @sherpa-labs/claim                  # confirms publish worked
 
 ---
 
-## 2. GitHub organisation `sherpa-labs-io` — ✅ Done
+## 2. GitHub organisation `rudrasatani13` — ✅ Done
 
 The repo was originally created at `rudrasatani13/SherpaLabs` and was
-transferred into the `sherpa-labs-io` GitHub organisation on
+transferred into the `rudrasatani13` GitHub organisation on
 **2026-05-23**.
 
-### Why `sherpa-labs-io` and not `sherpa-labs`
+### Why `rudrasatani13` and not `sherpa-labs`
 
 The audit on 2026-05-22 (preserved below) confirmed that the
 `sherpa-labs` GitHub login was registered by an unrelated account on
 2016-11-15 — nearly a decade before this project. The squatter org has
 zero public repos but GitHub will not release inactive org names
 absent a trademark claim. Rather than file a slow name-reclaim
-request, the org was created as `sherpa-labs-io` (the `-io` suffix
+request, the org was created as `rudrasatani13` (the `-io` suffix
 keeps brand continuity with the npm `@sherpa-labs/` scope, which is
 unaffected because GitHub and npm namespaces are independent).
 
@@ -124,16 +124,16 @@ $ gh api orgs/sherpa-labs --jq '{login, id, created_at, public_repos, html_url}'
 
 ### What was done
 
-1. Created the `sherpa-labs-io` GitHub organisation (Free plan,
+1. Created the `rudrasatani13` GitHub organisation (Free plan,
    founder account as Owner) at
    https://github.com/account/organizations/new.
 2. Invited `Rudra1543` as an org **Member** (required for fine-grained
    PAT scoping later — see [`GITHUB_SETUP.md`](./GITHUB_SETUP.md) §10).
 3. Transferred the repo via `gh api -X POST repos/rudrasatani13/SherpaLabs/transfer
-   -f new_owner=sherpa-labs-io -f new_name=SherpaLabs`.
+   -f new_owner=rudrasatani13 -f new_name=SherpaLabs`.
 4. Updated the local clone's remote URL:
    ```sh
-   git remote set-url origin git@github.com:sherpa-labs-io/SherpaLabs.git
+   git remote set-url origin git@github.com:rudrasatani13/SherpaLabs.git
    ```
 5. Verified that branch protection, secrets (`NPM_TOKEN`), workflows
    (`ci`, `release`), and collaborators all transferred intact — see
@@ -143,17 +143,17 @@ $ gh api orgs/sherpa-labs --jq '{login, id, created_at, public_repos, html_url}'
 ### Verification
 
 ```sh
-gh repo view sherpa-labs-io/SherpaLabs --json defaultBranchRef,visibility
-gh api repos/sherpa-labs-io/SherpaLabs/branches/main/protection \
+gh repo view rudrasatani13/SherpaLabs --json defaultBranchRef,visibility
+gh api repos/rudrasatani13/SherpaLabs/branches/main/protection \
   | jq 'del(.. | .url?)'
 ```
 
 ### Owner notes
 
-- Org created: `sherpa-labs-io` on 2026-05-23
-- Repo transferred: `rudrasatani13/SherpaLabs` → `sherpa-labs-io/SherpaLabs` on 2026-05-23
+- Org created: `rudrasatani13` on 2026-05-23
+- Repo transferred: `rudrasatani13/SherpaLabs` → `rudrasatani13/SherpaLabs` on 2026-05-23
 - Branch protection re-applied: not needed — transferred intact (verified)
-- Cloudflare apex redirect: still points at `github.com/rudrasatani13/SherpaLabs`; GitHub auto-redirects, but update the Cloudflare Page Rule to the canonical URL `github.com/sherpa-labs-io/SherpaLabs` next time the redirect rules are touched.
+- Cloudflare apex redirect: still points at `github.com/rudrasatani13/SherpaLabs`; GitHub auto-redirects, but update the Cloudflare Page Rule to the canonical URL `github.com/rudrasatani13/SherpaLabs` next time the redirect rules are touched.
 
 ---
 

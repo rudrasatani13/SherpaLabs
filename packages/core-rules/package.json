@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "url": "https://github.com/rudrasatani13/SherpaLabs.git",
     "directory": "packages/core-rules"
   },
-  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/core-rules#readme",
-  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
+  "homepage": "https://github.com/rudrasatani13/SherpaLabs/tree/main/packages/core-rules#readme",
+  "bugs": "https://github.com/rudrasatani13/SherpaLabs/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

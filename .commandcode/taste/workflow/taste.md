@@ -15,3 +15,4 @@
 - When user says "done i have joined now ?", confirm completion and proceed. Confidence: 0.70
 - When user says "done cloudflare redirect update" or similar "done [task]" messages, acknowledge completion and continue. Confidence: 0.70
 - When user reports "[name] already taken" or similar, treat as a blocker requiring alternative approach. Confidence: 0.70
+- Push directly to main without creating PRs. Remove PR review requirements and admin enforcement, but keep CI checks in place. Confidence: 0.85

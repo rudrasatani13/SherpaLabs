@@ -6,10 +6,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git"
+    "url": "https://github.com/rudrasatani13/SherpaLabs.git"
   },
-  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs#readme",
-  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
+  "homepage": "https://github.com/rudrasatani13/SherpaLabs#readme",
+  "bugs": "https://github.com/rudrasatani13/SherpaLabs/issues",
   "packageManager": "pnpm@11.1.3",
   "engines": {
     "node": ">=22.22.3",

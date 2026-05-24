@@ -6,11 +6,11 @@
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "url": "https://github.com/rudrasatani13/SherpaLabs.git",
     "directory": "apps/web"
   },
-  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/apps/web#readme",
-  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
+  "homepage": "https://github.com/rudrasatani13/SherpaLabs/tree/main/apps/web#readme",
+  "bugs": "https://github.com/rudrasatani13/SherpaLabs/issues",
   "type": "module",
   "scripts": {
     "build": "tsc --build",
