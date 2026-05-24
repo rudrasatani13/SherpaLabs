@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { CONFIG_FILE_NAME } from '../src/config.js';
 import { runWatchLoop, type WatcherFactory } from '../src/commands/watch.js';
+import { CONFIG_FILE_NAME } from '../src/config.js';
 import { EXIT_SUCCESS } from '../src/exit-codes.js';
 import { shouldUseSpinner, Spinner } from '../src/spinner.js';
 import packageJson from '../package.json' with { type: 'json' };
