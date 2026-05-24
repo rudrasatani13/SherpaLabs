@@ -8,4 +8,5 @@ packages:
 # listed is treated as unreviewed and (with `strictDepBuilds: true`, the
 # default) hard-fails `pnpm install` in CI.
 allowBuilds:
+  esbuild: true
   sharp: true
