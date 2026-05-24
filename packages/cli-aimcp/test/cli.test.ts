@@ -1,3 +1,4 @@
+/* eslint-disable no-control-regex */
 import { spawn } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
@@ -134,22 +135,22 @@ describe('aimcp-lint lint command', () => {
 
     expect(result.code).toBe(0);
     expect(result.stderr).toBe('');
-    expect(result.stdout).toContain('MCP Lint Report');
     expect(result.stdout).toContain('Score:');
     expect(result.stdout).toContain('Category Subscores');
+    expect(result.stdout).toContain('Summary');
   });
 
   it('selects JSON and Markdown output formats without spinner noise', async () => {
     const json = await runCli(['--format', 'json', '--', ...serverArgs('healthy.mjs')]);
     const markdown = await runCli(['--format', 'markdown', '--', ...serverArgs('healthy.mjs')]);
     const parsed = JSON.parse(json.stdout) as {
-      readonly schemaVersion: string;
+      readonly schema_version: string;
       readonly score: number;
     };
 
     expect(json.code).toBe(0);
     expect(json.stderr).toBe('');
-    expect(parsed.schemaVersion).toBe('1.0.0');
+    expect(parsed.schema_version).toBe('1.0.0');
     expect(typeof parsed.score).toBe('number');
     expect(markdown.code).toBe(0);
     expect(markdown.stderr).toBe('');
@@ -161,7 +162,7 @@ describe('aimcp-lint lint command', () => {
     const result = await runCli(['--fail-under', '101', '--', ...serverArgs('healthy.mjs')]);
 
     expect(result.code).toBe(1);
-    expect(result.stdout).toContain('MCP Lint Report');
+    expect(result.stdout).toContain('Score:');
   });
 
   it('applies --ignore and --only to the rule execution set', async () => {
@@ -182,14 +183,14 @@ describe('aimcp-lint lint command', () => {
       '--',
       ...serverArgs('violating.mjs'),
     ]);
-    const baseReport = JSON.parse(base.stdout) as JsonReport;
-    const ignoredReport = JSON.parse(ignored.stdout) as JsonReport;
-    const onlyReport = JSON.parse(only.stdout) as JsonReport;
+    const baseReport = JSON.parse(base.stdout) as SnakeJsonReport;
+    const ignoredReport = JSON.parse(ignored.stdout) as SnakeJsonReport;
+    const onlyReport = JSON.parse(only.stdout) as SnakeJsonReport;
 
-    expect(baseReport.violations.some((violation) => violation.ruleId === 'X004')).toBe(true);
-    expect(ignoredReport.violations.some((violation) => violation.ruleId === 'X004')).toBe(false);
-    expect(onlyReport.metadata.rulesRun).toEqual(['X004']);
-    expect(new Set(onlyReport.violations.map((violation) => violation.ruleId))).toEqual(
+    expect(baseReport.violations.some((violation) => violation.rule_id === 'X004')).toBe(true);
+    expect(ignoredReport.violations.some((violation) => violation.rule_id === 'X004')).toBe(false);
+    expect(onlyReport.metadata.rules_run).toEqual(['X004']);
+    expect(new Set(onlyReport.violations.map((violation) => violation.rule_id))).toEqual(
       new Set(['X004']),
     );
   });
@@ -215,11 +216,11 @@ describe('aimcp-lint lint command', () => {
       ],
       cwd,
     );
-    const report = JSON.parse(result.stdout) as JsonReport;
+    const report = JSON.parse(result.stdout) as SnakeJsonReport;
 
     expect(result.code).toBe(0);
-    expect(report.metadata.rulesRun).toEqual(['X004']);
-    expect(report.violations.some((violation) => violation.ruleId === 'X004')).toBe(true);
+    expect(report.metadata.rules_run).toEqual(['X004']);
+    expect(report.violations.some((violation) => violation.rule_id === 'X004')).toBe(true);
   });
 
   it('prints a useful config error for malformed JSON', async () => {
@@ -390,12 +391,377 @@ describe('aimcp-lint spinner behavior', () => {
   });
 });
 
-interface JsonReport {
-  readonly violations: readonly { readonly ruleId: string }[];
-  readonly metadata: { readonly rulesRun: readonly string[] };
+interface SnakeJsonReport {
+  readonly violations: readonly { readonly rule_id: string }[];
+  readonly metadata: { readonly rules_run: readonly string[] };
 }
 
 interface RulesReport {
   readonly count: number;
   readonly rules: readonly { readonly id: string; readonly description: string }[];
+}
+
+// Phase 22: Output Formatter Tests
+
+describe('aimcp-lint terminal formatter', () => {
+  it('shows score banner at top with box-drawing characters', async () => {
+    const result = await runCli(serverArgs('healthy.mjs'));
+
+    expect(result.stdout).toContain('┌──');
+    expect(result.stdout).toContain('Score:');
+    expect(result.stdout).toContain('└──');
+    expect(result.stdout).toContain('PASS');
+  });
+
+  it('groups violations by category with header and severity markers', async () => {
+    const result = await runCli(['--fail-under', '19', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain('Violations');
+    expect(result.stdout).toContain('Security');
+    expect(result.stdout).toContain('ERROR');
+  });
+
+  it('shows readable summary table at bottom', async () => {
+    const result = await runCli(['--fail-under', '19', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).toContain('Summary');
+    expect(result.stdout).toContain('Total Errors');
+    expect(result.stdout).toContain('Total Warnings');
+    expect(result.stdout).toContain('Total Info');
+    expect(result.stdout).toContain('Total Violations');
+    expect(result.stdout).toContain('Result');
+    expect(result.stdout).toContain('FAIL');
+  });
+
+  it('shows colors when stdout is TTY and NO_COLOR is not set', async () => {
+    const result = await runCliTty(serverArgs('healthy.mjs'), true);
+
+    expect(result.stdout).toMatch(/\u001B\[/u);
+  });
+
+  it('shows no colors when NO_COLOR is set', async () => {
+    const result = await runCliWithEnv(serverArgs('healthy.mjs'), { NO_COLOR: '1' });
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+
+  it('shows fix hints in detailed mode', async () => {
+    const result = await runCliTty(['--detailed', '--', ...serverArgs('violating.mjs')], true);
+
+    expect(result.stdout).toContain('Fix:');
+  });
+
+  it('does not show fix hints by default', async () => {
+    const result = await runCliTty(serverArgs('violating.mjs'), true);
+
+    expect(result.stdout).not.toContain('Fix:');
+  });
+});
+
+describe('aimcp-lint JSON formatter', () => {
+  it('uses snake_case keys with schema_version, score, max_score, violations, summary', async () => {
+    const result = await runCli(['--format', 'json', '--', ...serverArgs('healthy.mjs')]);
+    const report = JSON.parse(result.stdout) as Record<string, unknown>;
+
+    expect(report.schema_version).toBe('1.0.0');
+    expect(typeof report.score).toBe('number');
+    expect(typeof report.max_score).toBe('number');
+    expect(typeof report.passed).toBe('boolean');
+    expect(Array.isArray(report.violations)).toBe(true);
+    expect(report.summary).toBeTypeOf('object');
+    expect(report.category_subscores).toBeTypeOf('object');
+    expect(report.failing_rules).toBeTypeOf('object');
+    expect(report.server_info).toBeTypeOf('object');
+    expect(report.metadata).toBeTypeOf('object');
+  });
+
+  it('includes all category subscores', async () => {
+    const result = await runCli(['--format', 'json', '--', ...serverArgs('healthy.mjs')]);
+    const report = JSON.parse(result.stdout) as {
+      readonly category_subscores: Record<string, unknown>;
+    };
+
+    expect(report.category_subscores).toHaveProperty('protocol');
+    expect(report.category_subscores).toHaveProperty('schema');
+    expect(report.category_subscores).toHaveProperty('security');
+    expect(report.category_subscores).toHaveProperty('performance');
+  });
+
+  it('is deterministic across runs', async () => {
+    const first = await runCli(['--format', 'json', '--', ...serverArgs('healthy.mjs')]);
+    const second = await runCli(['--format', 'json', '--', ...serverArgs('healthy.mjs')]);
+
+    const firstReport = JSON.parse(first.stdout) as Record<string, unknown>;
+    const secondReport = JSON.parse(second.stdout) as Record<string, unknown>;
+
+    expect(firstReport.score).toBe(secondReport.score);
+    expect(firstReport.summary).toEqual(secondReport.summary);
+  });
+
+  it('has no ANSI color codes', async () => {
+    const result = await runCli(['--format', 'json', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+});
+
+describe('aimcp-lint Markdown formatter', () => {
+  it('uses GitHub-flavored Markdown with headings and tables', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).toContain('## MCP Lint Report');
+    expect(result.stdout).toContain('###');
+    expect(result.stdout).toContain('|');
+  });
+
+  it('has tables for violation lists', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).toContain('| Rule | Severity | Message | Location |');
+  });
+
+  it('has collapsible sections for categories with violations', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).toContain('<details');
+    expect(result.stdout).toContain('<summary>');
+    expect(result.stdout).toContain('</details>');
+  });
+
+  it('renders score, summary, and violations consistently with JSON', async () => {
+    const json = await runCli(['--format', 'json', '--', ...serverArgs('violating.mjs')]);
+    const markdown = await runCli(['--format', 'markdown', '--', ...serverArgs('violating.mjs')]);
+    const jsonReport = JSON.parse(json.stdout) as {
+      readonly score: number;
+      readonly max_score: number;
+      readonly passed: boolean;
+      readonly summary: { readonly violation_count: number };
+    };
+
+    expect(markdown.stdout).toContain(String(jsonReport.score));
+    expect(markdown.stdout).toContain(jsonReport.passed ? 'PASS' : 'FAIL');
+    expect(markdown.stdout).toContain(String(jsonReport.summary.violation_count));
+  });
+
+  it('has no ANSI color codes', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('violating.mjs')]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+});
+
+describe('aimcp-lint --quiet mode', () => {
+  it('terminal quiet shows only PASS/FAIL and score', async () => {
+    const result = await runCli(['--quiet', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout.trim()).toMatch(/^(PASS|FAIL) \d+\/100$/u);
+    expect(result.stdout).not.toContain('Category Subscores');
+    expect(result.stdout).not.toContain('Violations');
+    expect(result.stdout).not.toContain('Summary');
+  });
+
+  it('JSON quiet shows minimal score/passed/failed object', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+    const report = JSON.parse(result.stdout) as Record<string, unknown>;
+
+    expect(report.score).toBeTypeOf('number');
+    expect(report.max_score).toBeTypeOf('number');
+    expect(report.passed).toBeTypeOf('boolean');
+    expect(Object.keys(report).length).toBe(3);
+  });
+
+  it('Markdown quiet shows minimal score line', async () => {
+    const result = await runCli([
+      '--format',
+      'markdown',
+      '--quiet',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout.trim()).toMatch(/^\*\*Score:\*\*\s*`\d+\/100`\s*-/u);
+    expect(result.stdout).not.toContain('## MCP Lint Report');
+    expect(result.stdout).not.toContain('<details');
+  });
+});
+
+describe('aimcp-lint --verbose mode', () => {
+  it('writes internal steps to stderr', async () => {
+    const result = await runCli(['--verbose', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.stderr).toContain('[aimcp-lint] Config:');
+    expect(result.stderr).toContain('[aimcp-lint] Format:');
+    expect(result.stderr).toContain('[aimcp-lint] Resolved server command:');
+    expect(result.stderr).toContain('[aimcp-lint] Connecting to MCP server');
+    expect(result.stderr).toContain('[aimcp-lint] Collected');
+    expect(result.stderr).toContain('[aimcp-lint] Running lint rules');
+    expect(result.stderr).toContain('[aimcp-lint] Score:');
+    expect(result.stderr).toContain('[aimcp-lint] Violations:');
+    expect(result.stderr).toContain('[aimcp-lint] Rules run:');
+    expect(result.stderr).toContain('[aimcp-lint] Rendering output');
+  });
+
+  it('produces valid stdout for JSON format with verbose on stderr', async () => {
+    const result = await runCli([
+      '--format',
+      'json',
+      '--verbose',
+      '--',
+      ...serverArgs('healthy.mjs'),
+    ]);
+    const report = JSON.parse(result.stdout) as Record<string, unknown>;
+
+    expect(report.schema_version).toBe('1.0.0');
+    expect(typeof report.score).toBe('number');
+    expect(result.stderr).toContain('[aimcp-lint]');
+  });
+
+  it('does not write verbose when not enabled', async () => {
+    const result = await runCli(serverArgs('healthy.mjs'));
+
+    expect(result.stderr).toBe('');
+  });
+});
+
+describe('aimcp-lint --detailed flag', () => {
+  it('appears in help output', async () => {
+    const result = await runCli(['--help']);
+
+    expect(result.stdout).toContain('--detailed');
+    expect(result.stdout).toContain('fix hints');
+  });
+
+  it('can be set via config file', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-detailed-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ detailed: true }), 'utf8');
+
+    const result = await runCliTty(serverArgs('violating.mjs'), true, cwd);
+    expect(result.stdout).toContain('Fix:');
+  });
+
+  it('invalid detailed config produces an error', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aimcp-lint-detailed-bad-'));
+    await writeFile(join(cwd, CONFIG_FILE_NAME), JSON.stringify({ detailed: 'yes' }), 'utf8');
+
+    const result = await runCli(['--', ...serverArgs('healthy.mjs')], cwd);
+
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('detailed must be a boolean');
+  });
+});
+
+describe('aimcp-lint NO_COLOR behavior', () => {
+  it('disables ANSI codes in terminal output when NO_COLOR is set to any value', async () => {
+    const result = await runCliWithEnv(serverArgs('healthy.mjs'), { NO_COLOR: '1' });
+
+    expect(result.stdout).not.toMatch(/\u001B\[[0-9;]*m/u);
+  });
+
+  it('disables ANSI codes in terminal output when NO_COLOR is empty', async () => {
+    const result = await runCliWithEnv(serverArgs('healthy.mjs'), { NO_COLOR: '' });
+
+    expect(result.stdout).not.toMatch(/\u001B\[[0-9;]*m/u);
+  });
+
+  it('JSON output is never colored regardless of NO_COLOR', async () => {
+    const result = await runCli(['--format', 'json', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+
+  it('Markdown output is never colored regardless of NO_COLOR', async () => {
+    const result = await runCli(['--format', 'markdown', '--', ...serverArgs('healthy.mjs')]);
+
+    expect(result.stdout).not.toMatch(/\u001B\[/u);
+  });
+});
+
+// Helper: run CLI with TTY-like env (isTTY=1, no FORCE_COLOR override)
+async function runCliTty(
+  args: readonly string[],
+  forceEnv = true,
+  cwd?: string,
+): Promise<CliResult> {
+  return await new Promise<CliResult>((resolvePromise, rejectPromise) => {
+    const env = forceEnv ? { ...process.env, FORCE_COLOR: '1' } : { ...process.env };
+    const child = spawn(process.execPath, [binaryPath, ...args], {
+      cwd: cwd ?? packageRoot,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const timeout = setTimeout(() => {
+      child.kill('SIGKILL');
+      rejectPromise(new Error(`CLI timed out: ${args.join(' ')}`));
+    }, 10_000);
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout.push(chunk);
+    });
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderr.push(chunk);
+    });
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      rejectPromise(error);
+    });
+    child.on('close', (code) => {
+      clearTimeout(timeout);
+      resolvePromise({
+        code,
+        stdout: Buffer.concat(stdout).toString('utf8'),
+        stderr: Buffer.concat(stderr).toString('utf8'),
+      });
+    });
+  });
+}
+
+// Helper: run CLI with specific env overrides (no FORCE_COLOR, no TTY override)
+async function runCliWithEnv(
+  args: readonly string[],
+  envOverrides: Record<string, string>,
+): Promise<CliResult> {
+  return await new Promise<CliResult>((resolvePromise, rejectPromise) => {
+    const { FORCE_COLOR: _FORCE_COLOR, ...cleanEnv } = process.env;
+    const child = spawn(process.execPath, [binaryPath, ...args], {
+      cwd: packageRoot,
+      env: { ...cleanEnv, ...envOverrides },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const timeout = setTimeout(() => {
+      child.kill('SIGKILL');
+      rejectPromise(new Error(`CLI timed out: ${args.join(' ')}`));
+    }, 10_000);
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout.push(chunk);
+    });
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderr.push(chunk);
+    });
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      rejectPromise(error);
+    });
+    child.on('close', (code) => {
+      clearTimeout(timeout);
+      resolvePromise({
+        code,
+        stdout: Buffer.concat(stdout).toString('utf8'),
+        stderr: Buffer.concat(stderr).toString('utf8'),
+      });
+    });
+  });
 }

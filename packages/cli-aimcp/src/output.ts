@@ -1,13 +1,10 @@
-import {
-  formatMcpLintJsonReport,
-  formatMcpLintMarkdownReport,
-  formatMcpLintTerminalReport,
-  type LintResult,
-  type LintRule,
-} from '@sherpa-labs/core-mcp';
+import { type LintResult, type LintRule } from '@sherpa-labs/core-mcp';
 
 import type { OutputFormat } from './config.js';
 import { describeError } from './errors.js';
+import { formatTerminalReport } from './formatters/terminal.js';
+import { formatJsonReport } from './formatters/json.js';
+import { formatMarkdownReport } from './formatters/markdown.js';
 
 export interface WritableStreamLike {
   readonly isTTY?: boolean;
@@ -18,6 +15,7 @@ export interface RenderLintOutputOptions {
   readonly format: OutputFormat;
   readonly quiet: boolean;
   readonly colors: boolean;
+  readonly detailed: boolean;
 }
 
 export interface RenderRulesOutputOptions {
@@ -31,14 +29,22 @@ export function renderLintOutput(result: LintResult, options: RenderLintOutputOp
   }
 
   if (options.format === 'json') {
-    return formatMcpLintJsonReport(result, { pretty: true });
+    return formatJsonReport(result, {
+      quiet: options.quiet,
+      pretty: true,
+    });
   }
 
   if (options.format === 'markdown') {
-    return formatMcpLintMarkdownReport(result);
+    return formatMarkdownReport(result, {
+      quiet: options.quiet,
+    });
   }
 
-  return formatMcpLintTerminalReport(result, { colors: options.colors });
+  return formatTerminalReport(result, {
+    colors: options.colors,
+    detailed: options.detailed,
+  });
 }
 
 export function renderRulesOutput(

@@ -1,0 +1,1 @@
+export const VIOLATION_COLLAPSE_THRESHOLD = 10;

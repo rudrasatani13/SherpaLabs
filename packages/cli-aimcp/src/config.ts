@@ -18,6 +18,7 @@ export interface CommonFlagInput {
   readonly config?: string;
   readonly verbose?: boolean;
   readonly quiet?: boolean;
+  readonly detailed?: boolean;
 }
 
 export interface AimcpLintConfigFile {
@@ -28,6 +29,7 @@ export interface AimcpLintConfigFile {
   readonly ignoredRules?: readonly string[];
   readonly includedRules?: readonly string[];
   readonly watch?: readonly string[] | AimcpLintWatchConfig;
+  readonly detailed?: boolean;
 }
 
 export interface AimcpLintWatchConfig {
@@ -50,6 +52,7 @@ export interface ResolvedCliConfig {
   readonly configExists: boolean;
   readonly verbose: boolean;
   readonly quiet: boolean;
+  readonly detailed: boolean;
   readonly lintConfig: LintConfig;
 }
 
@@ -92,6 +95,7 @@ export async function resolveCliConfig(input: {
     input.options.only ?? [...(config.only ?? []), ...(config.includedRules ?? [])],
   );
   const quiet = input.options.quiet === true;
+  const detailed = input.options.detailed ?? config.detailed ?? false;
   const lintConfig = createLintConfig({
     ...(failUnder !== undefined ? { failUnder } : {}),
     ignoredRules,
@@ -106,6 +110,7 @@ export async function resolveCliConfig(input: {
     configExists: loaded.exists,
     verbose: quiet ? false : input.options.verbose === true,
     quiet,
+    detailed,
     lintConfig,
   };
 
@@ -165,6 +170,7 @@ interface MutableResolvedCliConfig {
   configExists: boolean;
   verbose: boolean;
   quiet: boolean;
+  detailed: boolean;
   lintConfig: LintConfig;
 }
 
@@ -226,6 +232,13 @@ function parseConfigObject(value: unknown, sourcePath: string): AimcpLintConfigF
     config.watch = parseWatchConfig(value.watch, sourcePath);
   }
 
+  if (value.detailed !== undefined) {
+    if (typeof value.detailed !== 'boolean') {
+      throw configError(`${sourcePath}: detailed must be a boolean.`);
+    }
+    config.detailed = value.detailed;
+  }
+
   return config;
 }
 
@@ -237,6 +250,7 @@ interface MutableAimcpLintConfigFile {
   ignoredRules?: readonly string[];
   includedRules?: readonly string[];
   watch?: readonly string[] | AimcpLintWatchConfig;
+  detailed?: boolean;
 }
 
 function parseWatchConfig(
