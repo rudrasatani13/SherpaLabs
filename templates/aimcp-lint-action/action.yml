@@ -1,0 +1,172 @@
+name: aimcp-lint
+description: Lint your MCP server for protocol compliance, schema violations, security issues, and performance best practices.
+
+branding:
+  icon: check-circle
+  color: blue
+
+inputs:
+  server-command:
+    description: "Command to start your MCP server (e.g., 'node ./server.mjs')"
+    required: true
+  min-score:
+    description: 'Minimum score required to pass (0-100)'
+    required: false
+    default: '80'
+  format:
+    description: 'Output format for step summary (terminal, json, or markdown)'
+    required: false
+    default: 'terminal'
+  config:
+    description: 'Path to .aimcp-lint.json config file'
+    required: false
+  working-directory:
+    description: 'Working directory for the lint run'
+    required: false
+    default: '.'
+  post-comment:
+    description: 'Post or update a PR comment with lint results (only works on pull_request events)'
+    required: false
+    default: 'true'
+  verbose:
+    description: 'Enable verbose diagnostics'
+    required: false
+    default: 'false'
+
+outputs:
+  score:
+    description: 'Lint score achieved'
+    value: ${{ steps.lint.outputs.score }}
+  max-score:
+    description: 'Maximum possible score'
+    value: ${{ steps.lint.outputs.max_score }}
+  passed:
+    description: 'Whether the lint threshold was met'
+    value: ${{ steps.lint.outputs.passed }}
+  report-path:
+    description: 'Path to the JSON lint result file'
+    value: ${{ steps.lint.outputs.report_path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run aimcp-lint
+      id: lint
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        AIMCP_RESULT_FILE: ${{ runner.temp }}/aimcp-lint-result.json
+      run: |
+        CONFIG_FLAG=""
+        if [ -n "${{ inputs.config }}" ]; then
+          CONFIG_FLAG="--config ${{ inputs.config }}"
+        fi
+
+        VERBOSE_FLAG=""
+        if [ "${{ inputs.verbose }}" = "true" ]; then
+          VERBOSE_FLAG="--verbose"
+        fi
+
+        set +e
+        npx @sherpa-labs/aimcp-lint \
+          --format json --quiet \
+          --fail-under "${{ inputs.min-score }}" \
+          $CONFIG_FLAG \
+          $VERBOSE_FLAG \
+          -- ${{ inputs.server-command }} > "$AIMCP_RESULT_FILE" 2>/dev/null
+        EXIT_CODE=$?
+        set -e
+
+        SCORE=$(node -e "try { const r=JSON.parse(require('fs').readFileSync('$AIMCP_RESULT_FILE','utf8')); process.stdout.write(String(r.score)) } catch { process.stdout.write('0') }")
+        MAX_SCORE=$(node -e "try { const r=JSON.parse(require('fs').readFileSync('$AIMCP_RESULT_FILE','utf8')); process.stdout.write(String(r.max_score)) } catch { process.stdout.write('100') }")
+        PASSED=$(node -e "try { const r=JSON.parse(require('fs').readFileSync('$AIMCP_RESULT_FILE','utf8')); process.stdout.write(r.passed?'true':'false') } catch { process.stdout.write('false') }")
+
+        echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+        echo "max_score=$MAX_SCORE" >> "$GITHUB_OUTPUT"
+        echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
+        echo "report_path=$AIMCP_RESULT_FILE" >> "$GITHUB_OUTPUT"
+
+        STATUS_EMOJI="❌"
+        STATUS_TEXT="FAIL"
+        if [ "$PASSED" = "true" ]; then
+          STATUS_EMOJI="✅"
+          STATUS_TEXT="PASS"
+        fi
+
+        {
+          echo "## ${STATUS_EMOJI} aimcp-lint Results"
+          echo ""
+          echo "| Metric | Value |"
+          echo "|--------|-------|"
+          echo "| Score | \`${SCORE}/${MAX_SCORE}\` |"
+          echo "| Threshold | \`${{ inputs.min-score }}\` |"
+          echo "| Result | ${STATUS_EMOJI} ${STATUS_TEXT} |"
+          echo "| Server Command | \`${{ inputs.server-command }}\` |"
+          echo ""
+          echo "<details><summary>JSON Report</summary>"
+          echo ""
+          echo '```json'
+          cat "$AIMCP_RESULT_FILE"
+          echo '```'
+          echo ""
+          echo "</details>"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        if [ "$PASSED" != "true" ]; then
+          echo "::error::aimcp-lint score ${SCORE}/${MAX_SCORE} is below threshold (${{ inputs.min-score }})"
+          exit 1
+        fi
+
+    - name: Post PR comment
+      if: ${{ inputs.post-comment == 'true' && github.event_name == 'pull_request' }}
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ github.token }}
+        script: |
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const jsonPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'aimcp-lint-result.json');
+          let report = { score: 0, max_score: 100, passed: false };
+          try {
+            report = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+          } catch {
+            // use defaults
+          }
+
+          const emoji = report.passed ? '✅' : '❌';
+          const body = [
+            `## ${emoji} aimcp-lint Report`,
+            '',
+            `| Metric | Value |`,
+            `|--------|-------|`,
+            `| Score | \`${report.score}/${report.max_score}\` |`,
+            `| Result | ${report.passed ? 'PASS' : 'FAIL'} |`,
+            '',
+            report.passed
+              ? 'All MCP lint checks passed. 🎉'
+              : `Lint threshold not met. Score ${report.score}/${report.max_score} is below the required minimum.`,
+          ].join('\n');
+
+          const { data: comments } = await github.rest.issues.listComments({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+
+          const botComment = comments.find(c => c.body?.includes('aimcp-lint Report'));
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              comment_id: botComment.id,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+          }

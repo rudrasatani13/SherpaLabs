@@ -38,6 +38,45 @@ When using `--format=json --quiet`, stdout contains exactly:
 
 ## GitHub Actions
 
+### Recommended: One-step Action
+
+The [`aimcp-lint-action`](https://github.com/sherpa-labs/aimcp-lint-action) composite action handles everything — installing, running, step summaries, and PR comments — in one step.
+
+```yaml
+name: MCP Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: npm ci
+
+      - uses: sherpa-labs/aimcp-lint-action@v1
+        with:
+          server-command: 'node ./server.mjs'
+```
+
+See [GITHUB_ACTION.md](./GITHUB_ACTION.md) for full action documentation, all inputs, outputs, and examples.
+
+### Manual npx (no action)
+
+If you prefer running directly without the action:
+
 ```yaml
 name: MCP Lint
 

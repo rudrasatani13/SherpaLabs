@@ -60,6 +60,82 @@ async function runCli(args: readonly string[], cwd = packageRoot): Promise<CliRe
   });
 }
 
+// Phase 25: npm publish metadata tests
+
+describe('package.json publish metadata', () => {
+  it('has correct package name and bin', () => {
+    expect(packageJson.name).toBe('@sherpa-labs/aimcp-lint');
+    expect(packageJson.bin).toEqual({ 'aimcp-lint': './dist/index.js' });
+  });
+
+  it('has a descriptive description', () => {
+    expect(packageJson.description.length).toBeGreaterThan(30);
+    expect(packageJson.description).toContain('MCP');
+  });
+
+  it('has relevant keywords', () => {
+    expect(Array.isArray(packageJson.keywords)).toBe(true);
+    expect(packageJson.keywords).toContain('mcp');
+    expect(packageJson.keywords).toContain('lint');
+  });
+
+  it('has repository information', () => {
+    expect(packageJson.repository).toEqual({
+      type: 'git',
+      url: 'https://github.com/sherpa-labs-io/SherpaLabs.git',
+      directory: 'packages/cli-aimcp',
+    });
+  });
+
+  it('has author and license', () => {
+    expect(packageJson.author).toBeTruthy();
+    expect(packageJson.license).toBe('MIT');
+  });
+
+  it('publishes only dist/ and LICENSE files', () => {
+    expect(packageJson.files).toEqual(['dist', 'LICENSE']);
+  });
+
+  it('has engines field requiring Node >= 22', () => {
+    expect(packageJson.engines).toBeDefined();
+    expect(packageJson.engines.node).toBe('>=22.0.0');
+  });
+
+  it('has prepublishOnly script', () => {
+    expect(packageJson.scripts.prepublishOnly).toBe('pnpm build && pnpm test');
+  });
+
+  it('has correct main and types entry points', () => {
+    expect(packageJson.main).toBe('./dist/index.js');
+    expect(packageJson.types).toBe('./dist/index.d.ts');
+  });
+
+  it('has correct exports field', () => {
+    expect(packageJson.exports).toEqual({
+      '.': {
+        types: './dist/index.d.ts',
+        default: './dist/index.js',
+      },
+    });
+  });
+
+  it('has sideEffects set to false', () => {
+    expect(packageJson.sideEffects).toBe(false);
+  });
+
+  it('has a valid version string', () => {
+    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
+  it('is a public package (not private)', () => {
+    expect(packageJson.private).toBeUndefined();
+  });
+
+  it('type is module', () => {
+    expect(packageJson.type).toBe('module');
+  });
+});
+
 function fixturePath(name: string): string {
   return join(fixtureRoot, name);
 }

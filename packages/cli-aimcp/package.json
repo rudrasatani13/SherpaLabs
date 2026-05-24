@@ -1,15 +1,25 @@
 {
   "name": "@sherpa-labs/aimcp-lint",
   "version": "0.0.0",
-  "description": "MCP lint CLI for validating Model Context Protocol servers.",
+  "description": "Lint your MCP server for protocol compliance, schema violations, security issues, and performance best practices.",
   "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "lint",
+    "linter",
+    "cli",
+    "mcp-server",
+    "sherpa-labs"
+  ],
+  "author": "Sherpa Labs <hello@sherpalabs.dev>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rudrasatani13/SherpaLabs.git",
+    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
     "directory": "packages/cli-aimcp"
   },
-  "homepage": "https://github.com/rudrasatani13/SherpaLabs/tree/main/packages/cli-aimcp#readme",
-  "bugs": "https://github.com/rudrasatani13/SherpaLabs/issues",
+  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/cli-aimcp#readme",
+  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,7 +40,11 @@
   "scripts": {
     "build": "tsup && tsc --build --force",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
-    "test": "pnpm build && vitest run"
+    "test": "pnpm build && vitest run",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@sherpa-labs/core-mcp": "workspace:*",
