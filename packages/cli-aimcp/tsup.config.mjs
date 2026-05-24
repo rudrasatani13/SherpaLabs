@@ -22,6 +22,7 @@ export default defineConfig({
     '@sherpa-labs/core-utils',
     '@sherpa-labs/shared-types',
     'commander',
+    'picocolors',
   ],
   outDir: 'dist',
   platform: 'node',
