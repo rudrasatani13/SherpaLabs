@@ -17,7 +17,12 @@ export default defineConfig({
   dts: false,
   format: ['esm'],
   minify: true,
-  noExternal: ['commander'],
+  noExternal: [
+    '@sherpa-labs/core-mcp',
+    '@sherpa-labs/core-utils',
+    '@sherpa-labs/shared-types',
+    'commander',
+  ],
   outDir: 'dist',
   platform: 'node',
   shims: false,

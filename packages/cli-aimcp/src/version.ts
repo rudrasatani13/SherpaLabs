@@ -1,3 +1,4 @@
-declare const AIMCP_LINT_PACKAGE_VERSION: string;
+declare const AIMCP_LINT_PACKAGE_VERSION: string | undefined;
 
-export const packageVersion = AIMCP_LINT_PACKAGE_VERSION;
+export const packageVersion =
+  typeof AIMCP_LINT_PACKAGE_VERSION === 'string' ? AIMCP_LINT_PACKAGE_VERSION : '0.0.0';

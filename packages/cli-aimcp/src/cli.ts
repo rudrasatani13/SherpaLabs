@@ -1,30 +1,51 @@
+import process from 'node:process';
+
 import { Command } from 'commander/esm.mjs';
 
+import { createInitCommand } from './commands/init.js';
+import { addCommonLintOptions, runLintCommand } from './commands/lint.js';
+import { createRulesCommand } from './commands/rules.js';
+import { createWatchCommand } from './commands/watch.js';
+import type { CommonFlagInput } from './config.js';
+import { errorExitCode } from './errors.js';
+import { writeCliError } from './output.js';
 import { packageVersion } from './version.js';
 
 const cliName = 'aimcp-lint';
 const cliDescription = 'MCP lint CLI for validating Model Context Protocol servers.';
-const phaseNotice = [
+const examples = [
   '',
-  'This Phase 20 scaffold provides the command shell only.',
-  'Lint execution and subcommands will be added in Phase 21.',
+  'Examples:',
+  '  aimcp-lint node ./server.mjs',
+  '  aimcp-lint -- node ./server.mjs --flag',
+  '  aimcp-lint watch -- node ./server.mjs',
 ].join('\n');
 
 export function createCli(): Command {
   const program = new Command();
 
-  program
+  addCommonLintOptions(program)
     .name(cliName)
     .description(cliDescription)
-    .usage('[options]')
+    .usage('[options] [--] <server-command> [args...]')
     .version(packageVersion, '-V, --version', 'display the aimcp-lint version')
     .helpOption('-h, --help', 'display help for command')
     .showHelpAfterError('(add --help for usage)')
     .showSuggestionAfterError(false)
-    .addHelpText('after', phaseNotice)
-    .action(() => {
-      program.outputHelp();
+    .argument('[serverCommand...]', 'target MCP server command and arguments')
+    .addHelpText('after', examples)
+    .action(async (serverCommandTokens: string[] | undefined, options: CommonFlagInput) => {
+      if ((serverCommandTokens ?? []).length === 0) {
+        program.outputHelp();
+        return;
+      }
+
+      process.exitCode = await runLintCommand({ serverCommandTokens, options });
     });
+
+  program.addCommand(createWatchCommand());
+  program.addCommand(createInitCommand());
+  program.addCommand(createRulesCommand());
 
   return program;
 }
@@ -32,5 +53,10 @@ export function createCli(): Command {
 export async function runCli(argv: readonly string[] = process.argv): Promise<void> {
   const program = createCli();
 
-  await program.parseAsync([...argv]);
+  try {
+    await program.parseAsync([...argv]);
+  } catch (error) {
+    writeCliError(error, process.stderr);
+    process.exitCode = errorExitCode(error);
+  }
 }
