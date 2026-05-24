@@ -1,6 +1,6 @@
 {
   "name": "@sherpa-labs/aimcp-lint",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Lint your MCP server for protocol compliance, schema violations, security issues, and performance best practices.",
   "license": "MIT",
   "keywords": [
