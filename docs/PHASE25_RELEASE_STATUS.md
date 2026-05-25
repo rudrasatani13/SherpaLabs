@@ -107,6 +107,22 @@ Current release result:
 }
 ```
 
+Requested `sherpa-labs/aimcp-lint-action` move status:
+
+- Target repo lookup:
+  `gh repo view sherpa-labs/aimcp-lint-action` returns repository not found.
+- Transfer attempt:
+  `gh api repos/rudrasatani13/aimcp-lint-action/transfer --method POST -f new_owner=sherpa-labs`
+  returns HTTP `422`: "You don't have the permission to create public
+  repositories on sherpa-labs".
+- Direct create attempt:
+  `gh api orgs/sherpa-labs/repos --method POST -f name=aimcp-lint-action -f private=false`
+  returns HTTP `403`: "You need admin access to the organization before adding a
+  repository to it."
+
+The authenticated account is `rudrasatani13`. GitHub reports membership/admin
+access for `sherpa-labs-io`, not `sherpa-labs`.
+
 ## Sample Action Run Status
 
 Passed.
@@ -176,9 +192,15 @@ Agreement from the link shown on that release page, then retry the same edit.
 
 ## Remaining Blockers
 
+- `sherpa-labs/aimcp-lint-action` cannot be created or transferred by the
+  current credentials. A `sherpa-labs` org owner must either grant
+  `rudrasatani13` permission to create public repositories in that org, transfer
+  the repository from the GitHub UI, or provide a token/account with that org
+  permission.
 - Marketplace listing is not published yet because the final GitHub release UI
-  checkbox must be completed manually. Everything else required for Phase 25 has
-  been completed under `rudrasatani13`.
+  checkbox must be completed manually. After the action repository lives under
+  the intended owner, edit the release and select "Publish this Action to the
+  GitHub Marketplace".
 
 ## Latest Verification
 
