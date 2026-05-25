@@ -17,6 +17,7 @@ try {
   const packDir = join(tempRoot, 'pack');
   const extractDir = join(tempRoot, 'extract');
   const binDir = join(tempRoot, 'bin');
+  const installDir = join(tempRoot, 'install');
 
   await run('pnpm', [
     'exec',
@@ -31,6 +32,7 @@ try {
   await mkdir(packDir, { recursive: true });
   await mkdir(extractDir, { recursive: true });
   await mkdir(binDir, { recursive: true });
+  await mkdir(installDir, { recursive: true });
   await run('pnpm', ['pack', '--pack-destination', packDir], { cwd: packageRoot });
 
   const tarballs = (await readdir(packDir)).filter((file) => file.endsWith('.tgz'));
@@ -61,10 +63,28 @@ try {
     `Packed binary version was ${version.stdout.trim()}, expected ${packageJson.default.version}.`,
   );
 
+  await run('npm', ['init', '-y'], { cwd: installDir });
+  await run('npm', ['install', tarballPath], { cwd: installDir });
+
+  const installedHelp = await runCapture('npx', ['aimcp-lint', '--help'], { cwd: installDir });
+  assert(
+    installedHelp.stdout.includes('Usage: aimcp-lint'),
+    'Installed packed binary did not print CLI help.',
+  );
+
+  const installedVersion = await runCapture('npx', ['aimcp-lint', '--version'], {
+    cwd: installDir,
+  });
+  assert(
+    installedVersion.stdout.trim() === packageJson.default.version,
+    `Installed packed binary version was ${installedVersion.stdout.trim()}, expected ${packageJson.default.version}.`,
+  );
+
   passed = true;
   console.log('Phase 25 aimcp-lint pack smoke passed.');
   console.log(`tarball: ${basename(tarballPath)}`);
   console.log(`version: ${version.stdout.trim()}`);
+  console.log(`installed-version: ${installedVersion.stdout.trim()}`);
   console.log(`files: ${tarballEntries.join(', ')}`);
 } finally {
   if (tempRoot !== undefined) {

@@ -49,19 +49,19 @@ Lint MCP servers for protocol, schema, security, and performance issues. Generat
 
 ## Author
 
-Sherpa Labs ([@sherpa-labs-io](https://github.com/sherpa-labs-io))
+Rudra Satani ([@rudrasatani13](https://github.com/rudrasatani13))
 
 ## Repository
 
-`https://github.com/sherpa-labs/aimcp-lint-action`
+`https://github.com/rudrasatani13/aimcp-lint-action`
 
 ## Steps to Publish on GitHub Marketplace
 
-1. Create the repository `sherpa-labs/aimcp-lint-action` on GitHub.
+1. Create the repository `rudrasatani13/aimcp-lint-action` on GitHub.
 2. Push the following files to the repo root:
    - `action.yml`
    - `README.md`
-3. Go to `https://github.com/sherpa-labs/aimcp-lint-action/releases/new`
+3. Go to `https://github.com/rudrasatani13/aimcp-lint-action/releases/new`
 4. Tag the release as `v1` (or `v1.0.0` with `v1` as an additional tag).
 5. Check "Publish this Action to the GitHub Marketplace".
 6. Fill in the metadata from above.
@@ -70,5 +70,5 @@ Sherpa Labs ([@sherpa-labs-io](https://github.com/sherpa-labs-io))
 After publishing, the action is available as:
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
 ```

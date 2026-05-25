@@ -40,7 +40,7 @@ When using `--format=json --quiet`, stdout contains exactly:
 
 ### Recommended: One-step Action
 
-The [`aimcp-lint-action`](https://github.com/sherpa-labs/aimcp-lint-action) composite action handles everything — installing, running, step summaries, and PR comments — in one step.
+The [`aimcp-lint-action`](https://github.com/rudrasatani13/aimcp-lint-action) composite action handles everything — installing, running, step summaries, and PR comments — in one step.
 
 ```yaml
 name: MCP Lint
@@ -66,7 +66,7 @@ jobs:
 
       - run: npm ci
 
-      - uses: sherpa-labs/aimcp-lint-action@v1
+      - uses: rudrasatani13/aimcp-lint-action@v1
         with:
           server-command: 'node ./server.mjs'
 ```

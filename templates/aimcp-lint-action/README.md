@@ -25,7 +25,7 @@ jobs:
 
       - run: npm ci
 
-      - uses: sherpa-labs/aimcp-lint-action@v1
+      - uses: rudrasatani13/aimcp-lint-action@v1
         with:
           server-command: 'node ./server.mjs'
 ```
@@ -90,7 +90,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: sherpa-labs/aimcp-lint-action@v1
+      - uses: rudrasatani13/aimcp-lint-action@v1
         with:
           server-command: 'node ./server.mjs'
 ```
@@ -100,7 +100,7 @@ jobs:
 ### Minimal setup
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   with:
     server-command: 'node ./dist/server.js'
 ```
@@ -108,7 +108,7 @@ jobs:
 ### Custom threshold and Markdown rendering
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   with:
     server-command: 'npx my-mcp-server'
     min-score: '90'
@@ -118,7 +118,7 @@ jobs:
 ### With config file
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   with:
     server-command: 'node ./server.mjs'
     config: '.aimcp-lint.json'
@@ -127,7 +127,7 @@ jobs:
 ### Using outputs in downstream steps
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   id: lint
   with:
     server-command: 'node ./server.mjs'
@@ -138,7 +138,7 @@ jobs:
 ### Disable PR comments
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   with:
     server-command: 'node ./server.mjs'
     post-comment: 'false'
@@ -170,7 +170,7 @@ jobs:
 
       - run: npm ci
 
-      - uses: sherpa-labs/aimcp-lint-action@v1
+      - uses: rudrasatani13/aimcp-lint-action@v1
         id: lint
         with:
           server-command: 'node ./server.mjs'

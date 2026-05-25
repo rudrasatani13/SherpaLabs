@@ -4,14 +4,14 @@ One-step CI integration for `@sherpa-labs/aimcp-lint`. Run against your MCP serv
 
 ## Action Repository
 
-`https://github.com/sherpa-labs/aimcp-lint-action`
+`https://github.com/rudrasatani13/aimcp-lint-action`
 
 The action template lives in this repo at `templates/aimcp-lint-action/`.
 
 ## Usage
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   with:
     server-command: 'node ./server.mjs'
 ```
@@ -87,7 +87,7 @@ permissions:
 
 ## Creating the Action Repository
 
-To create the standalone `sherpa-labs/aimcp-lint-action` repository:
+To create the standalone `rudrasatani13/aimcp-lint-action` repository:
 
 1. Copy `templates/aimcp-lint-action/action.yml` to the repo root as `action.yml`.
 2. Copy `templates/aimcp-lint-action/README.md` to the repo root as `README.md`.
@@ -123,7 +123,7 @@ jobs:
 
       - run: npm ci
 
-      - uses: sherpa-labs/aimcp-lint-action@v1
+      - uses: rudrasatani13/aimcp-lint-action@v1
         id: lint
         with:
           server-command: 'node ./server.mjs'
@@ -141,7 +141,7 @@ strategy:
     server: [server-a, server-b]
 
 steps:
-  - uses: sherpa-labs/aimcp-lint-action@v1
+  - uses: rudrasatani13/aimcp-lint-action@v1
     id: lint
     with:
       server-command: 'node ./packages/${{ matrix.server }}/index.mjs'
@@ -152,7 +152,7 @@ steps:
 ### With custom config and no PR comments
 
 ```yaml
-- uses: sherpa-labs/aimcp-lint-action@v1
+- uses: rudrasatani13/aimcp-lint-action@v1
   with:
     server-command: 'node ./server.mjs'
     config: '.aimcp-lint.ci.json'

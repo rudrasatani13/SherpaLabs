@@ -21,7 +21,7 @@ jobs:
 
       - run: npm ci
 
-      - uses: sherpa-labs/aimcp-lint-action@v1
+      - uses: rudrasatani13/aimcp-lint-action@v1
         with:
           server-command: 'node ./server.mjs'
           min-score: '80'

@@ -82,7 +82,7 @@ describe('package.json publish metadata', () => {
   it('has repository information', () => {
     expect(packageJson.repository).toEqual({
       type: 'git',
-      url: 'https://github.com/sherpa-labs-io/SherpaLabs.git',
+      url: 'https://github.com/rudrasatani13/SherpaLabs.git',
       directory: 'packages/cli-aimcp',
     });
   });
@@ -94,6 +94,11 @@ describe('package.json publish metadata', () => {
 
   it('publishes only dist/ and LICENSE files', () => {
     expect(packageJson.files).toEqual(['dist', 'LICENSE']);
+  });
+
+  it('does not publish workspace-only runtime dependencies', () => {
+    expect(packageJson.dependencies).not.toHaveProperty('@sherpa-labs/core-mcp');
+    expect(packageJson.devDependencies).toHaveProperty('@sherpa-labs/core-mcp');
   });
 
   it('has engines field requiring Node >= 22', () => {

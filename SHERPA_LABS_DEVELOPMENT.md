@@ -921,7 +921,7 @@ Work through phases sequentially within a stage. Some stages can be parallelized
 - First public release
 
 **Key Deliverables:**
-- GitHub Action repository: `sherpa-labs/aimcp-lint-action`
+- GitHub Action repository: `rudrasatani13/aimcp-lint-action`
 - Composite Action that:
   - Installs the CLI
   - Runs lint against specified server

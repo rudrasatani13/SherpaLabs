@@ -15,11 +15,11 @@
   "author": "Sherpa Labs <hello@sherpalabs.dev>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sherpa-labs-io/SherpaLabs.git",
+    "url": "https://github.com/rudrasatani13/SherpaLabs.git",
     "directory": "packages/cli-aimcp"
   },
-  "homepage": "https://github.com/sherpa-labs-io/SherpaLabs/tree/main/packages/cli-aimcp#readme",
-  "bugs": "https://github.com/sherpa-labs-io/SherpaLabs/issues",
+  "homepage": "https://github.com/rudrasatani13/SherpaLabs/tree/main/packages/cli-aimcp#readme",
+  "bugs": "https://github.com/rudrasatani13/SherpaLabs/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -47,11 +47,11 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@sherpa-labs/core-mcp": "workspace:*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
+    "@sherpa-labs/core-mcp": "workspace:*",
     "@sherpa-labs/shared-config": "workspace:*",
     "@types/node": "^25.9.1",
     "tsup": "^8.0.0",
