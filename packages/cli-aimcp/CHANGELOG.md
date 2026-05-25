@@ -1,5 +1,11 @@
 # @sherpa-labs/aimcp-lint
 
+## 0.0.2
+
+### Patch Changes
+
+- [`961335a`](https://github.com/rudrasatani13/SherpaLabs/commit/961335ae49c9d36e6b3396ec1ca4e429d75e4b63) Thanks [@rudrasatani13](https://github.com/rudrasatani13)! - Fix npm installs by keeping the bundled core MCP implementation out of runtime dependencies.
+
 ## 0.0.1
 
 ### Patch Changes
